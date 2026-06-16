@@ -6,13 +6,20 @@ import { SlidersHorizontal, X } from "lucide-react";
 import PropertyCard from "../components/PropertyCard";
 import { properties, cities, propertyTypes, dealTypes } from "../data/properties";
 
+const MAX_PRICE = 3_500_000_000;
+const MIN_PRICE = 2_000_000;
+const PRICE_STEP = 1_000_000;
+
+const formatTZS = (amount: number) =>
+  `TSh ${new Intl.NumberFormat("en-TZ").format(amount)}`;
+
 export default function PropertiesClient() {
   const searchParams = useSearchParams();
 
   const [city, setCity] = useState(searchParams.get("city") || "All Cities");
   const [category, setCategory] = useState("All Types");
   const [deal, setDeal] = useState(searchParams.get("type") || "All");
-  const [maxPrice, setMaxPrice] = useState(1500000);
+  const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [showFilters, setShowFilters] = useState(false);
 
   const filtered = useMemo(() => {
@@ -29,7 +36,7 @@ export default function PropertiesClient() {
     setCity("All Cities");
     setCategory("All Types");
     setDeal("All");
-    setMaxPrice(1500000);
+    setMaxPrice(MAX_PRICE);
   };
 
   return (
@@ -153,19 +160,30 @@ export default function PropertiesClient() {
 
               {/* Price */}
               <div>
-                <p className="text-xs font-bold tracking-wider uppercase mb-3 font-body" style={{ color: "#6B6558" }}>
-                  Max Price: USD {maxPrice.toLocaleString()}
+                <p className="text-xs font-bold tracking-wider uppercase mb-1 font-body" style={{ color: "#6B6558" }}>
+                  Max Price
+                </p>
+                <p className="text-sm font-bold font-body mb-3" style={{ color: "#1C1C1E" }}>
+                  {formatTZS(maxPrice)}
                 </p>
                 <input
                   type="range"
-                  min={500}
-                  max={1500000}
-                  step={500}
+                  min={MIN_PRICE}
+                  max={MAX_PRICE}
+                  step={PRICE_STEP}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full"
                   style={{ accentColor: "#A02B2F" }}
                 />
+                <div className="flex justify-between mt-1">
+                  <span className="text-xs font-body" style={{ color: "#6B6558" }}>
+                    {formatTZS(MIN_PRICE)}
+                  </span>
+                  <span className="text-xs font-body" style={{ color: "#6B6558" }}>
+                    {formatTZS(MAX_PRICE)}
+                  </span>
+                </div>
               </div>
             </div>
           </aside>

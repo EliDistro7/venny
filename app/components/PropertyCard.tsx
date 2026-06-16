@@ -8,11 +8,9 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
-  const formatPrice = (price: number, currency: string, type: string) => {
-    const formatted = new Intl.NumberFormat("en-US").format(price);
-    return type === "rent"
-      ? `${currency} ${formatted}/mo`
-      : `${currency} ${formatted}`;
+  const formatPrice = (price: number, type: string) => {
+    const formatted = `TSh ${new Intl.NumberFormat("en-TZ").format(price)}`;
+    return type === "rent" ? `${formatted}/mo` : formatted;
   };
 
   const categoryLabel: Record<string, string> = {
@@ -77,7 +75,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             className="text-2xl font-bold mb-1 font-display"
             style={{ color: "#A02B2F" }}
           >
-            {formatPrice(property.price, property.currency, property.type)}
+            {formatPrice(property.price, property.type)}
           </p>
 
           {/* Title */}
