@@ -445,7 +445,7 @@ export default function Home() {
             className="inline-flex items-center gap-2 px-10 py-4 rounded text-base font-bold font-body transition-all hover:scale-105"
             style={{
               background: "linear-gradient(135deg, #A02B2F, #7E2125)",
-              color: "#F8F5F0",
+              color: "#F8F5F0"
             }}
           >
             List Your Property Free
