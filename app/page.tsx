@@ -13,7 +13,7 @@ export default function Home() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=1600&q=85"
+            src="/featured/f7.jpeg"
             alt="Dar es Salaam skyline"
             fill
             className="object-cover"
@@ -189,7 +189,7 @@ export default function Home() {
       </section>
 
       {/* ─── LOCATION SPOTLIGHT ─── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "#FFFFFF" }}>
+      <section className="py-20 px-6" >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <p
@@ -211,31 +211,31 @@ export default function Home() {
               {
                 city: "Dar es Salaam",
                 count: 420,
-                img: "https://images.unsplash.com/photo-1521220546621-cf34a1165c67?w=600&q=80",
+                img: "/featured/f4.jpeg",
                 size: "md:col-span-2 md:row-span-2",
               },
               {
                 city: "Zanzibar",
                 count: 185,
-                img: "https://images.unsplash.com/photo-1484821582734-6692f8f073f8?w=600&q=80",
+                img: "/featured/f11.jpeg",
                 size: "",
               },
               {
                 city: "Arusha",
                 count: 97,
-                img: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&q=80",
+                img: "/featured/f13.jpeg",
                 size: "",
               },
               {
                 city: "Mwanza",
                 count: 63,
-                img: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80",
+                img: "/featured/f10.jpeg",
                 size: "",
               },
               {
                 city: "Dodoma",
                 count: 44,
-                img: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=600&q=80",
+                img: "/featured/f9.jpeg",
                 size: "",
               },
             ].map((loc) => (
