@@ -4,6 +4,7 @@ export interface Property {
   location: string;
   city: string;
   price: number;
+  status?: "work_in_progress" | "finished" | "delivered";
   currency: string;
   type: "sale" | "rent";
   category: "apartment" | "villa" | "land" | "commercial" | "house";

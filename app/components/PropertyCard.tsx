@@ -7,7 +7,17 @@ interface PropertyCardProps {
   property: Property;
 }
 
+const statusConfig: Record<string, { label: string; color: string }> = {
+  work_in_progress: { label: "Work in Progress", color: "#D9822B" },
+  finished: { label: "Finished", color: "#2F855A" },
+  delivered: { label: "Delivered to Customer", color: "#4A5568" },
+};
+
 export default function PropertyCard({ property }: PropertyCardProps) {
+  // Once a property is delivered, it's no longer the company's to sell —
+  // never show a price or "For Sale/Rent" tag on it, regardless of category.
+  const isDelivered = property.status === "delivered";
+
   const formatPrice = (price: number, type: string) => {
     const formatted = `TSh ${new Intl.NumberFormat("en-TZ").format(price)}`;
     return type === "rent" ? `${formatted}/mo` : formatted;
@@ -39,22 +49,35 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           {/* Badges */}
-          <div className="absolute top-3 left-3 flex gap-2">
-            <span
-              className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body uppercase"
-              style={{
-                backgroundColor: property.type === "sale" ? "#A02B2F" : "#1C1C1E",
-                color: "#FFFFFF",
-              }}
-            >
-              {property.type === "sale" ? "For Sale" : "For Rent"}
-            </span>
+          <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+            {!isDelivered && (
+              <span
+                className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body uppercase"
+                style={{
+                  backgroundColor: property.type === "sale" ? "#A02B2F" : "#1C1C1E",
+                  color: "#FFFFFF",
+                }}
+              >
+                {property.type === "sale" ? "For Sale" : "For Rent"}
+              </span>
+            )}
             <span
               className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body"
               style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#1C1C1E" }}
             >
               {categoryLabel[property.category]}
             </span>
+            {property.category === "house" && property.status && (
+              <span
+                className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body"
+                style={{
+                  backgroundColor: statusConfig[property.status].color,
+                  color: "#FFFFFF",
+                }}
+              >
+                {statusConfig[property.status].label}
+              </span>
+            )}
           </div>
           {property.featured && (
             <div className="absolute top-3 right-3">
@@ -70,13 +93,22 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
         {/* Content */}
         <div className="p-5">
-          {/* Price */}
-          <p
-            className="text-2xl font-bold mb-1 font-display"
-            style={{ color: "#A02B2F" }}
-          >
-            {formatPrice(property.price, property.type)}
-          </p>
+          {/* Price OR completed-project caption */}
+          {isDelivered ? (
+            <p
+              className="text-sm font-bold mb-1 font-body uppercase tracking-wide"
+              style={{ color: "#A02B2F" }}
+            >
+              One of the projects completed by Venny Construction &amp; Real Estate
+            </p>
+          ) : (
+            <p
+              className="text-2xl font-bold mb-1 font-display"
+              style={{ color: "#A02B2F" }}
+            >
+              {formatPrice(property.price, property.type)}
+            </p>
+          )}
 
           {/* Title */}
           <h3

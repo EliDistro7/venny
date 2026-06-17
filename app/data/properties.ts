@@ -13,6 +13,7 @@ export const properties: Property[] = [
     bedrooms: 4,
     bathrooms: 3,
     area: 320,
+     status: "delivered",
     image:
       "/featured/f1.jpeg",
     featured: true,
@@ -37,6 +38,7 @@ export const properties: Property[] = [
     type: "sale",
     category: "villa",
     bedrooms: 5,
+    status: "work_in_progress",
     bathrooms: 4,
     area: 480,
     image:
@@ -63,6 +65,7 @@ export const properties: Property[] = [
     type: "rent",
     category: "apartment",
     bedrooms: 2,
+    status: "delivered",
     bathrooms: 1,
     area: 95,
     image:
@@ -84,6 +87,7 @@ export const properties: Property[] = [
     bedrooms: 3,
     bathrooms: 2,
     area: 210,
+    status: "delivered",
     image:
       "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80",
     featured: true,
@@ -373,4 +377,33 @@ export const propertyTypes = [
   "land",
   "commercial",
 ];
+
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+function normalize(doc: any): Property {
+  return { ...doc, id: doc._id, image: doc.images?.[0] || "" } as Property;
+}
+
+export async function getProperties(params?: {
+  city?: string; type?: string; category?: string; featured?: boolean;
+}): Promise<Property[]> {
+  const query = new URLSearchParams();
+  if (params?.city) query.set("city", params.city);
+  if (params?.type) query.set("type", params.type);
+  if (params?.category) query.set("category", params.category);
+  if (params?.featured !== undefined) query.set("featured", String(params.featured));
+
+  const res = await fetch(`${API_URL}/api/properties?${query.toString()}`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) return [];
+  return (await res.json()).map(normalize);
+}
+
+export async function getProperty(id: string): Promise<Property | null> {
+  const res = await fetch(`${API_URL}/api/properties/${id}`, { next: { revalidate: 60 } });
+  if (!res.ok) return null;
+  return normalize(await res.json());
+}
 export const dealTypes = ["All", "sale", "rent"];

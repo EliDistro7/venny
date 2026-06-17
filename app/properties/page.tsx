@@ -1,10 +1,15 @@
 import { Suspense } from "react";
+import { getProperties } from "../data/properties";
 import PropertiesClient from "./PropertiesClient";
 
-export default function PropertiesPage() {
+export const revalidate = 60;
+
+export default async function PropertiesPage() {
+  const properties = await getProperties();
+
   return (
-    <Suspense fallback={<div className="min-h-screen" style={{ backgroundColor: "#F8F5F0" }} />}>
-      <PropertiesClient />
+    <Suspense fallback={null}>
+      <PropertiesClient properties={properties} />
     </Suspense>
   );
 }

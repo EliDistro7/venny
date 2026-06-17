@@ -2,10 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Search, MapPin, TrendingUp, Shield, Users, ChevronRight, Star } from "lucide-react";
 import PropertyCard from "./components/PropertyCard";
-import { properties, testimonials } from "./data/properties";
+import { properties, testimonials, getProperties } from "./data/properties";
 
-export default function Home() {
-  const featured = properties.filter((p) => p.featured).slice(0, 3);
+export default async function Home() {
+ const allFeatured = await getProperties({ featured: true });
+  const featured = allFeatured.filter((p) => p.status !== "delivered").slice(0, 3);
 
   return (
     <main>

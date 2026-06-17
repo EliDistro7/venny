@@ -1,0 +1,390 @@
+"use client";
+
+import { useState, useRef, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { AdminProperty, PropertyCategory, PropertyStatus, PropertyType } from "@/types/admin";
+import { createProperty, updateProperty, ApiError } from "@/lib/adminApi";
+
+interface PropertyFormProps {
+  mode: "create" | "edit";
+  property?: AdminProperty;
+}
+
+const CITIES = ["Dar es Salaam", "Zanzibar", "Arusha", "Mwanza", "Dodoma"];
+const CATEGORIES: PropertyCategory[] = ["apartment", "villa", "house", "land", "commercial"];
+
+export default function PropertyForm({ mode, property }: PropertyFormProps) {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [title, setTitle] = useState(property?.title || "");
+  const [location, setLocation] = useState(property?.location || "");
+  const [city, setCity] = useState(property?.city || CITIES[0]);
+  const [price, setPrice] = useState(property?.price?.toString() || "");
+  const [currency, setCurrency] = useState(property?.currency || "TZS");
+  const [type, setType] = useState<PropertyType>(property?.type || "sale");
+  const [category, setCategory] = useState<PropertyCategory>(property?.category || "house");
+  const [bedrooms, setBedrooms] = useState(property?.bedrooms?.toString() || "0");
+  const [bathrooms, setBathrooms] = useState(property?.bathrooms?.toString() || "0");
+  const [area, setArea] = useState(property?.area?.toString() || "");
+  const [status, setStatus] = useState<PropertyStatus>(property?.status || "delivered");
+  const [featured, setFeatured] = useState(property?.featured || false);
+  const [description, setDescription] = useState(property?.description || "");
+  const [amenities, setAmenities] = useState(property?.amenities?.join(", ") || "");
+
+  const [existingImages, setExistingImages] = useState(property?.images || []);
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function handleNewFiles(files: FileList | null) {
+    if (!files) return;
+    setNewFiles((prev) => [...prev, ...Array.from(files)]);
+  }
+
+  function removeNewFile(index: number) {
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function removeExistingImage(url: string) {
+    setExistingImages((prev) => prev.filter((u) => u !== url));
+    setRemovedImages((prev) => [...prev, url]);
+  }
+
+  function isLand() {
+    return category === "land";
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!title || !location || !price || !area) {
+      setError("Please fill in title, location, price and area.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("location", location);
+    formData.append("city", city);
+    formData.append("price", price);
+    formData.append("currency", currency);
+    formData.append("type", type);
+    formData.append("category", category);
+    formData.append("bedrooms", isLand() ? "0" : bedrooms);
+    formData.append("bathrooms", isLand() ? "0" : bathrooms);
+    formData.append("area", area);
+    formData.append("status", status);
+    formData.append("featured", String(featured));
+    formData.append("description", description);
+    formData.append(
+      "amenities",
+      JSON.stringify(
+        amenities
+          .split(",")
+          .map((a) => a.trim())
+          .filter(Boolean)
+      )
+    );
+    newFiles.forEach((file) => formData.append("images", file));
+    if (mode === "edit" && removedImages.length) {
+      formData.append("removeImages", JSON.stringify(removedImages));
+    }
+
+      // ✅ ADD THIS — open browser console before submitting
+  console.log("newFiles count:", newFiles.length);
+  for (const [key, value] of formData.entries()) {
+    console.log("FormData entry:", key, value);
+  }
+
+    setSaving(true);
+    try {
+      if (mode === "create") {
+        await createProperty(formData);
+      } else if (property) {
+        await updateProperty(property._id, formData);
+      }
+      router.push("/admin/dashboard");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not save this listing");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="max-w-3xl">
+      {error && (
+        <div className="bg-brick-red/10 border border-brick-red/30 text-brick-red font-body text-sm rounded-md px-4 py-3 mb-6">
+          {error}
+        </div>
+      )}
+
+      <Section title="Basic info">
+        <Field label="Title" full>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={inputClass}
+            placeholder="Luxury Penthouse in Masaki"
+          />
+        </Field>
+        <Field label="Location" full>
+          <input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className={inputClass}
+            placeholder="Masaki Peninsula, Dar es Salaam"
+          />
+        </Field>
+        <Field label="City">
+          <select value={city} onChange={(e) => setCity(e.target.value)} className={inputClass}>
+            {CITIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Category">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as PropertyCategory)}
+            className={inputClass}
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c.charAt(0).toUpperCase() + c.slice(1)}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </Section>
+
+      <Section title="Pricing & specs">
+        <Field label="Listing">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setType("sale")}
+              className={`flex-1 py-2 rounded-md font-body text-sm transition-colors ${
+                type === "sale" ? "bg-brick-red text-white" : "bg-mist text-text-soft"
+              }`}
+            >
+              For sale
+            </button>
+            <button
+              type="button"
+              onClick={() => setType("rent")}
+              className={`flex-1 py-2 rounded-md font-body text-sm transition-colors ${
+                type === "rent" ? "bg-brick-red text-white" : "bg-mist text-text-soft"
+              }`}
+            >
+              For rent
+            </button>
+          </div>
+        </Field>
+        <Field label="Build status">
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as PropertyStatus)}
+            className={inputClass}
+          >
+            <option value="delivered">Delivered</option>
+            <option value="work_in_progress">Work in progress</option>
+          </select>
+        </Field>
+        <Field label="Price">
+          <div className="flex gap-2">
+            <input
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className={`${inputClass} w-20`}
+              maxLength={3}
+            />
+            <input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className={inputClass}
+              placeholder="2210000000"
+              min={0}
+            />
+          </div>
+        </Field>
+        <Field label="Area (sqm)">
+          <input
+            type="number"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            className={inputClass}
+            min={0}
+          />
+        </Field>
+        {!isLand() && (
+          <>
+            <Field label="Bedrooms">
+              <input
+                type="number"
+                value={bedrooms}
+                onChange={(e) => setBedrooms(e.target.value)}
+                className={inputClass}
+                min={0}
+              />
+            </Field>
+            <Field label="Bathrooms">
+              <input
+                type="number"
+                value={bathrooms}
+                onChange={(e) => setBathrooms(e.target.value)}
+                className={inputClass}
+                min={0}
+              />
+            </Field>
+          </>
+        )}
+        <Field label="Featured listing">
+          <label className="flex items-center gap-2 mt-1 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={featured}
+              onChange={(e) => setFeatured(e.target.checked)}
+              className="w-4 h-4 accent-brick-red"
+            />
+            <span className="font-body text-sm text-text-soft">Show on homepage</span>
+          </label>
+        </Field>
+      </Section>
+
+      <Section title="Description & amenities">
+        <Field label="Description" full>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className={inputClass}
+            rows={4}
+          />
+        </Field>
+        <Field label="Amenities (comma-separated)" full>
+          <input
+            value={amenities}
+            onChange={(e) => setAmenities(e.target.value)}
+            className={inputClass}
+            placeholder="Ocean View, Swimming Pool, 24/7 Security"
+          />
+        </Field>
+      </Section>
+
+      <Section title="Photos">
+        <div className="col-span-2">
+          {existingImages.length > 0 && (
+            <div className="flex flex-wrap gap-3 mb-4">
+              {existingImages.map((url) => (
+                <div key={url} className="relative w-24 h-24 rounded-md overflow-hidden border border-stone-grey/30">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeExistingImage(url)}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
+                    aria-label="Remove image"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {newFiles.length > 0 && (
+            <div className="flex flex-wrap gap-3 mb-4">
+              {newFiles.map((file, i) => (
+                <div key={i} className="relative w-24 h-24 rounded-md overflow-hidden border border-window-gold/60">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeNewFile(i)}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
+                    aria-label="Remove image"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => handleNewFiles(e.target.files)}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-2 rounded-md hover:border-brick-red hover:text-brick-red transition-colors"
+          >
+            Add photos
+          </button>
+        </div>
+      </Section>
+
+      <div className="flex gap-3 mt-8">
+        <button
+          type="submit"
+          disabled={saving}
+          className="font-body text-sm bg-brick-red text-white px-6 py-2.5 rounded-md hover:bg-brick-red-dark transition-colors disabled:opacity-50"
+        >
+          {saving ? "Saving…" : mode === "create" ? "Add property" : "Save changes"}
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push("/admin/dashboard")}
+          className="font-body text-sm text-text-soft px-6 py-2.5 rounded-md hover:bg-mist transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+const inputClass =
+  "w-full bg-white border border-stone-grey/30 rounded-md px-3 py-2 font-body text-sm text-charcoal-roof focus:outline-none focus:border-brick-red transition-colors";
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-8">
+      <h3 className="font-display text-lg text-charcoal-roof mb-4 pb-2 border-b border-stone-grey/20">
+        {title}
+      </h3>
+      <div className="grid grid-cols-2 gap-5">{children}</div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+  full = false,
+}: {
+  label: string;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
+  return (
+    <div className={full ? "col-span-2" : ""}>
+      <label className="block font-body text-xs uppercase tracking-wide text-text-soft/70 mb-1.5">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
