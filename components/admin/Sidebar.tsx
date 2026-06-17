@@ -66,6 +66,29 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-4 py-6">
         <Link
+          href="/"
+          className="flex items-center gap-3 px-4 py-2.5 rounded-md font-body text-sm text-stone-grey hover:bg-mist/5 hover:text-mist transition-colors mb-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-4 h-4 shrink-0"
+            aria-hidden="true"
+          >
+            <path d="M3 11.5 12 4l9 7.5" />
+            <path d="M5 10v9.5a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
+          </svg>
+          Back to Website
+        </Link>
+
+        <div className="my-3 border-t border-mist/10" aria-hidden="true" />
+
+        <Link
           href="/admin/dashboard"
           className={`flex items-center gap-3 px-4 py-2.5 rounded-md font-body text-sm transition-colors ${
             isActive
