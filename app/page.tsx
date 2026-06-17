@@ -342,65 +342,6 @@ export default async function Home() {
 
  
 
-      {/* ─── TESTIMONIALS ─── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "#FFFFFF" }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p
-              className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
-              style={{ color: "#A02B2F" }}
-            >
-              Client Stories
-            </p>
-            <h2
-              className="text-4xl font-bold"
-              style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
-            >
-              What Our Clients Say
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((t) => (
-              <div
-                key={t.id}
-                className="rounded-xl p-7"
-                style={{
-                  backgroundColor: "#F8F5F0",
-                  border: "1px solid rgba(160, 43, 47, 0.12)",
-                }}
-              >
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={14}
-                      style={{ fill: "#F2C94C", color: "#F2C94C" }}
-                    />
-                  ))}
-                </div>
-                <p
-                  className="text-sm leading-relaxed mb-5 font-body"
-                  style={{ color: "#4A4437" }}
-                >
-                  &ldquo;{t.message}&rdquo;
-                </p>
-                <div>
-                  <p
-                    className="font-bold text-sm"
-                    style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
-                  >
-                    {t.name}
-                  </p>
-                  <p className="text-xs font-body" style={{ color: "#A02B2F" }}>
-                    {t.location}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ─── CTA BANNER ─── */}
       <section className="relative py-24 overflow-hidden">
