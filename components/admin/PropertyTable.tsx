@@ -33,7 +33,7 @@ export default function PropertyTable({ properties, onDeleted }: PropertyTablePr
 
   if (properties.length === 0) {
     return (
-      <div className="bg-white border border-stone-grey/20 rounded-lg p-12 text-center">
+      <div className="bg-white border border-stone-grey/20 rounded-lg p-8 sm:p-12 text-center">
         <p className="font-display text-xl text-charcoal-roof mb-2">No listings yet</p>
         <p className="font-body text-sm text-text-soft mb-6">
           Add your first property to see it appear here.
@@ -50,7 +50,76 @@ export default function PropertyTable({ properties, onDeleted }: PropertyTablePr
 
   return (
     <>
-      <div className="bg-white border border-stone-grey/20 rounded-lg overflow-hidden">
+      {/* ── Mobile card list (hidden sm and up) ── */}
+      <div className="sm:hidden flex flex-col gap-3">
+        {properties.map((property) => (
+          <div
+            key={property._id}
+            className="bg-white border border-stone-grey/20 rounded-lg px-4 py-4"
+          >
+            <div className="flex items-start gap-3">
+              {/* Thumbnail */}
+              <div className="w-14 h-14 rounded-md bg-mist overflow-hidden shrink-0 border border-stone-grey/20">
+                {property.images[0] && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={property.images[0]}
+                    alt={property.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </div>
+
+              {/* Main info */}
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm font-medium text-charcoal-roof truncate">
+                  {property.title}
+                </p>
+                <p className="font-body text-xs text-text-soft/70 capitalize mt-0.5">
+                  {property.city} · {property.type} · {property.category}
+                  {property.featured && (
+                    <span className="ml-1.5 text-brick-red font-medium">★ Featured</span>
+                  )}
+                </p>
+                <p className="font-body text-sm text-text-soft mt-1 whitespace-nowrap">
+                  {formatPrice(property.price, property.currency)}
+                </p>
+              </div>
+            </div>
+
+            {/* Footer row: status badge + actions */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-stone-grey/10">
+              <span
+                className={`font-body text-xs px-2.5 py-1 rounded-full ${
+                  property.status === "delivered"
+                    ? "bg-charcoal-roof/5 text-charcoal-roof"
+                    : "bg-window-gold/15 text-charcoal-roof"
+                }`}
+              >
+                {property.status === "delivered" ? "Delivered" : "Work in progress"}
+              </span>
+
+              <div className="flex gap-4">
+                <Link
+                  href={`/admin/dashboard/${property._id}/edit`}
+                  className="font-body text-sm text-charcoal-roof hover:text-brick-red transition-colors"
+                >
+                  Edit
+                </Link>
+                <button
+                  onClick={() => setPendingDelete(property)}
+                  className="font-body text-sm text-brick-red hover:text-brick-red-dark transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Desktop table (hidden below sm) ── */}
+      <div className="hidden sm:block bg-white border border-stone-grey/20 rounded-lg overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-stone-grey/20 text-left">

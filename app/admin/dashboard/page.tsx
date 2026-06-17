@@ -23,23 +23,26 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      {/* Stack on mobile, side-by-side from sm up */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="font-display text-3xl text-charcoal-roof">Properties</h1>
+          <h1 className="font-display text-2xl sm:text-3xl text-charcoal-roof">Properties</h1>
           <p className="font-body text-sm text-text-soft mt-1">
             Manage every listing shown on the public site.
           </p>
         </div>
+        {/* Full-width tap target on mobile */}
         <Link
           href="/admin/dashboard/new"
-          className="font-body text-sm bg-brick-red text-white px-5 py-2.5 rounded-md hover:bg-brick-red-dark transition-colors"
+          className="w-full sm:w-auto text-center font-body text-sm bg-brick-red text-white px-5 py-3 sm:py-2.5 rounded-md hover:bg-brick-red-dark transition-colors shrink-0"
         >
           Add property
         </Link>
       </div>
 
       {properties && (
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        // 2-up on mobile, 4-up from sm up
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
           <StatCard label="Total listings" value={properties.length} />
           <StatCard label="For sale" value={properties.filter((p) => p.type === "sale").length} />
           <StatCard label="For rent" value={properties.filter((p) => p.type === "rent").length} />

@@ -94,12 +94,6 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
       formData.append("removeImages", JSON.stringify(removedImages));
     }
 
-      // ✅ ADD THIS — open browser console before submitting
-  console.log("newFiles count:", newFiles.length);
-  for (const [key, value] of formData.entries()) {
-    console.log("FormData entry:", key, value);
-  }
-
     setSaving(true);
     try {
       if (mode === "create") {
@@ -116,7 +110,8 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl">
+    // Added px-4 sm:px-0 so the form isn't flush against the screen edge on mobile
+    <form onSubmit={handleSubmit} className="max-w-3xl px-4 sm:px-0">
       {error && (
         <div className="bg-brick-red/10 border border-brick-red/30 text-brick-red font-body text-sm rounded-md px-4 py-3 mb-6">
           {error}
@@ -166,11 +161,12 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
 
       <Section title="Pricing & specs">
         <Field label="Listing">
+          {/* min-h-[44px] ensures both buttons meet the 44px touch-target minimum */}
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setType("sale")}
-              className={`flex-1 py-2 rounded-md font-body text-sm transition-colors ${
+              className={`flex-1 min-h-[44px] py-2.5 rounded-md font-body text-sm transition-colors ${
                 type === "sale" ? "bg-brick-red text-white" : "bg-mist text-text-soft"
               }`}
             >
@@ -179,7 +175,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             <button
               type="button"
               onClick={() => setType("rent")}
-              className={`flex-1 py-2 rounded-md font-body text-sm transition-colors ${
+              className={`flex-1 min-h-[44px] py-2.5 rounded-md font-body text-sm transition-colors ${
                 type === "rent" ? "bg-brick-red text-white" : "bg-mist text-text-soft"
               }`}
             >
@@ -197,12 +193,17 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             <option value="work_in_progress">Work in progress</option>
           </select>
         </Field>
-        <Field label="Price">
+        <Field label="Price" full>
+          {/*
+            Moved to `full` width and changed the currency box to a fixed
+            w-16 so the number input gets all the remaining space on narrow
+            screens instead of both competing for a half-column.
+          */}
           <div className="flex gap-2">
             <input
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
-              className={`${inputClass} w-20`}
+              className={`${inputClass} w-16 shrink-0`}
               maxLength={3}
             />
             <input
@@ -281,15 +282,20 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
       <Section title="Photos">
         <div className="col-span-2">
           {existingImages.length > 0 && (
-            <div className="flex flex-wrap gap-3 mb-4">
+            // w-20 h-20 on mobile (down from w-24 h-24) to fit more per row
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
               {existingImages.map((url) => (
-                <div key={url} className="relative w-24 h-24 rounded-md overflow-hidden border border-stone-grey/30">
+                <div
+                  key={url}
+                  className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-md overflow-hidden border border-stone-grey/30"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt="" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => removeExistingImage(url)}
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
+                    // Enlarged tap target: w-6 h-6 on mobile
+                    className="absolute top-1 right-1 w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
                     aria-label="Remove image"
                   >
                     ×
@@ -300,15 +306,18 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
           )}
 
           {newFiles.length > 0 && (
-            <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
               {newFiles.map((file, i) => (
-                <div key={i} className="relative w-24 h-24 rounded-md overflow-hidden border border-window-gold/60">
+                <div
+                  key={i}
+                  className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-md overflow-hidden border border-window-gold/60"
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => removeNewFile(i)}
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
+                    className="absolute top-1 right-1 w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
                     aria-label="Remove image"
                   >
                     ×
@@ -326,28 +335,30 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             onChange={(e) => handleNewFiles(e.target.files)}
             className="hidden"
           />
+          {/* Full-width on mobile so it's an easy tap target */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-2 rounded-md hover:border-brick-red hover:text-brick-red transition-colors"
+            className="w-full sm:w-auto font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-3 sm:py-2.5 rounded-md hover:border-brick-red hover:text-brick-red transition-colors"
           >
             Add photos
           </button>
         </div>
       </Section>
 
-      <div className="flex gap-3 mt-8">
+      {/* Both action buttons full-width on mobile for easy tapping */}
+      <div className="flex flex-col sm:flex-row gap-3 mt-8">
         <button
           type="submit"
           disabled={saving}
-          className="font-body text-sm bg-brick-red text-white px-6 py-2.5 rounded-md hover:bg-brick-red-dark transition-colors disabled:opacity-50"
+          className="w-full sm:w-auto font-body text-sm bg-brick-red text-white px-6 py-3 sm:py-2.5 rounded-md hover:bg-brick-red-dark transition-colors disabled:opacity-50"
         >
           {saving ? "Saving…" : mode === "create" ? "Add property" : "Save changes"}
         </button>
         <button
           type="button"
           onClick={() => router.push("/admin/dashboard")}
-          className="font-body text-sm text-text-soft px-6 py-2.5 rounded-md hover:bg-mist transition-colors"
+          className="w-full sm:w-auto font-body text-sm text-text-soft px-6 py-3 sm:py-2.5 rounded-md hover:bg-mist transition-colors"
         >
           Cancel
         </button>
@@ -357,7 +368,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
 }
 
 const inputClass =
-  "w-full bg-white border border-stone-grey/30 rounded-md px-3 py-2 font-body text-sm text-charcoal-roof focus:outline-none focus:border-brick-red transition-colors";
+  "w-full bg-white border border-stone-grey/30 rounded-md px-3 py-2.5 font-body text-sm text-charcoal-roof focus:outline-none focus:border-brick-red transition-colors";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -365,7 +376,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h3 className="font-display text-lg text-charcoal-roof mb-4 pb-2 border-b border-stone-grey/20">
         {title}
       </h3>
-      <div className="grid grid-cols-2 gap-5">{children}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">{children}</div>
     </div>
   );
 }
@@ -380,7 +391,7 @@ function Field({
   full?: boolean;
 }) {
   return (
-    <div className={full ? "col-span-2" : ""}>
+    <div className={full ? "col-span-1 sm:col-span-2" : ""}>
       <label className="block font-body text-xs uppercase tracking-wide text-text-soft/70 mb-1.5">
         {label}
       </label>

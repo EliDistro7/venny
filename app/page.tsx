@@ -6,7 +6,7 @@ import { properties, testimonials, getProperties } from "./data/properties";
 
 export default async function Home() {
  const allFeatured = await getProperties({ featured: true });
-  const featured = allFeatured.filter((p) => p.status !== "delivered").slice(0, 3);
+  const featured = allFeatured.slice(0, 3);
 
   return (
     <main>

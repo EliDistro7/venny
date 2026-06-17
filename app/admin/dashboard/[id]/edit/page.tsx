@@ -29,7 +29,7 @@ export default function EditPropertyPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-charcoal-roof mb-1">Edit property</h1>
+      <h1 className="font-display text-2xl sm:text-3xl text-charcoal-roof mb-1">Edit property</h1>
       <p className="font-body text-sm text-text-soft mb-8">{property.title}</p>
       <PropertyForm mode="edit" property={property} />
     </div>
