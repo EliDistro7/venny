@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { loginAdmin, setAuthToken, ApiError } from "@/lib/adminApi";
 
 export default function AdminLoginPage() {
@@ -30,7 +31,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-charcoal-roof overflow-hidden">
-      {/* Signature: a faint grid of lit "windows" across the dark facade */}
+      {/* Faint grid of lit "windows" across the dark facade */}
       <div
         className="absolute inset-0 opacity-[0.07]"
         style={{
@@ -42,12 +43,35 @@ export default function AdminLoginPage() {
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-charcoal-roof to-transparent" />
 
       <div className="relative z-10 w-full max-w-sm px-8">
-        <div className="text-center mb-10">
-          <p className="font-body text-xs tracking-[0.25em] uppercase text-window-gold mb-3">
-            NyumbaTZ
+        {/* Branding header */}
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative h-24 w-24 mb-4">
+            <Image
+              src="/logo.png"
+              alt="Venny Construction & Real Estate Co. Ltd."
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <h1
+            className="text-2xl font-bold text-center leading-tight"
+            style={{ color: "#A02B2F", fontFamily: "Georgia, serif" }}
+          >
+            Venny Construction
+            <br />& Real Estate Co. Ltd.
+          </h1>
+          <p
+            className="mt-1 text-sm italic"
+            style={{ color: "#9ca3af", fontFamily: "Georgia, serif" }}
+          >
+            Maisha Ni Nyumba Bora
           </p>
-          <h1 className="font-display text-4xl text-mist">Admin Dashboard</h1>
-          <p className="font-body text-sm text-stone-grey mt-2">
+          <div className="mt-5 h-px w-16 bg-window-gold/40" />
+          <p className="font-body text-xs tracking-[0.2em] uppercase text-stone-grey mt-4">
+            Admin Dashboard
+          </p>
+          <p className="font-body text-xs text-stone-grey/70 mt-1">
             Sign in to manage your property listings.
           </p>
         </div>
@@ -57,7 +81,10 @@ export default function AdminLoginPage() {
           className="bg-mist/[0.04] border border-mist/10 rounded-lg p-8 backdrop-blur-sm"
         >
           <div className="mb-5">
-            <label htmlFor="email" className="block font-body text-xs uppercase tracking-wide text-stone-grey mb-2">
+            <label
+              htmlFor="email"
+              className="block font-body text-xs uppercase tracking-wide text-stone-grey mb-2"
+            >
               Email
             </label>
             <input
@@ -67,13 +94,16 @@ export default function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-charcoal-roof border border-mist/15 rounded-md px-4 py-2.5 font-body text-mist placeholder:text-stone-grey/60 focus:outline-none focus:border-window-gold transition-colors"
-              placeholder="admin@nyumbatz.co.tz"
+              placeholder="admin@vennyconstruction.co.tz"
               autoComplete="email"
             />
           </div>
 
           <div className="mb-6">
-            <label htmlFor="password" className="block font-body text-xs uppercase tracking-wide text-stone-grey mb-2">
+            <label
+              htmlFor="password"
+              className="block font-body text-xs uppercase tracking-wide text-stone-grey mb-2"
+            >
               Password
             </label>
             <input

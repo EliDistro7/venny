@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAuthToken } from "@/lib/adminApi";
@@ -17,11 +18,29 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 shrink-0 bg-charcoal-roof min-h-screen flex flex-col">
-      <div className="px-6 py-7 border-b border-mist/10">
-        <p className="font-body text-[11px] tracking-[0.25em] uppercase text-window-gold">
-          NyumbaTZ
+      <div className="px-6 py-6 border-b border-mist/10">
+        <div className="flex items-center gap-3">
+          <div className="relative w-10 h-10 shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Venny Construction & Real Estate Co. Ltd."
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div>
+            <p className="font-body text-[10px] tracking-[0.2em] uppercase text-window-gold leading-tight">
+              Venny Construction
+            </p>
+            <p className="font-body text-[10px] text-mist/60 leading-tight">
+              & Real Estate Co. Ltd.
+            </p>
+          </div>
+        </div>
+        <p className="font-body text-[10px] italic text-stone-grey/60 mt-3">
+          Maisha Ni Nyumba Bora
         </p>
-        <h2 className="font-display text-2xl text-mist mt-1">Admin</h2>
       </div>
 
       <nav className="flex-1 px-4 py-6">
