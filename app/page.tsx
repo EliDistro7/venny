@@ -155,39 +155,50 @@ export default async function Home() {
       </section>
 
       {/* ─── FEATURED PROPERTIES ─── */}
-      <section className="py-20 px-6" style={{ backgroundColor: "#F8F5F0" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
-            <div>
-              <p
-                className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
-                style={{ color: "#A02B2F" }}
-              >
-                Handpicked for You
-              </p>
-              <h2
-                className="text-4xl font-bold"
-                style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
-              >
-                Featured Properties
-              </h2>
-            </div>
-            <Link
-              href="/properties"
-              className="flex items-center gap-2 mt-4 md:mt-0 text-sm font-body font-bold link-underline"
-              style={{ color: "#A02B2F" }}
-            >
-              View All Properties <ChevronRight size={16} />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featured.map((p) => (
-              <PropertyCard key={p.id} property={p} />
-            ))}
-          </div>
+   {/* ─── FEATURED PROPERTIES ─── */}
+{featured.length > 0 && (
+  <section className="py-20 px-6" style={{ backgroundColor: "#F8F5F0" }}>
+    <div className="max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+        <div>
+          <p
+            className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
+            style={{ color: "#A02B2F" }}
+          >
+            Handpicked for You
+          </p>
+          <h2
+            className="text-4xl font-bold"
+            style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
+          >
+            Featured Properties
+          </h2>
         </div>
-      </section>
+        <Link
+          href="/properties"
+          className="flex items-center gap-2 mt-4 md:mt-0 text-sm font-body font-bold link-underline"
+          style={{ color: "#A02B2F" }}
+        >
+          View All Properties <ChevronRight size={16} />
+        </Link>
+      </div>
+
+      <div
+        className={`grid gap-8 grid-cols-1 ${
+          featured.length === 1
+            ? "md:grid-cols-1 max-w-md mx-auto"
+            : featured.length === 2
+            ? "md:grid-cols-2 max-w-3xl mx-auto"
+            : "md:grid-cols-3"
+        }`}
+      >
+        {featured.map((p) => (
+          <PropertyCard key={p.id} property={p} />
+        ))}
+      </div>
+    </div>
+  </section>
+)}
 
       {/* ─── LOCATION SPOTLIGHT ─── */}
       <section className="py-20 px-6" >
