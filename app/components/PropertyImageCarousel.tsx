@@ -9,7 +9,7 @@ interface Props {
   title: string;
 }
 
-export default function PropertyImageCarousel({ images, title }: Props) {
+export default function PropertyImageCarousel({ images = [], title }: Props) {
   const [current, setCurrent] = useState(0);
 
   const prev = () => setCurrent((i) => (i === 0 ? images.length - 1 : i - 1));

@@ -317,7 +317,13 @@ export const propertyTypes = [
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function normalize(doc: any): Property {
-  return { ...doc, id: doc._id, image: doc.images?.[0] || "" } as Property;
+  const imgs: string[] = doc.images?.length ? doc.images : doc.image ? [doc.image] : [];
+  return {
+    ...doc,
+    id: doc._id,
+    image: imgs[0] ?? "",
+    images: imgs,
+  } as Property;
 }
 
 export async function getProperties(params?: {
