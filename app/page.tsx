@@ -226,23 +226,24 @@ export default async function Home() {
         </section>
       )}
 
-      {/* ─── LOCATION SPOTLIGHT ─── */}
-      {spotlightCities.length > 0 && (
-        <section className="py-20 px-6">
+
+    {/* ─── LOCATION SPOTLIGHT ─── */}
+{spotlightCities.length > 0 && (
+  <section className="py-20 px-6" style={{ backgroundColor: "#1C1C1E" }}>
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-14">
-              <p
-                className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
-                style={{ color: "#A02B2F" }}
-              >
-                Explore Tanzania
-              </p>
-              <h2
-                className="text-4xl font-bold"
-                style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
-              >
-                Properties by Destination
-              </h2>
+           <p
+  className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
+  style={{ color: "#F2C94C" }}   // was #A02B2F
+>
+  Explore Dodoma, Tanzania
+</p>
+<h2
+  className="text-4xl font-bold"
+  style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}   // was #1C1C1E
+>
+  Properties by Destination
+</h2>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -370,7 +371,7 @@ export default async function Home() {
             className="text-xs font-bold tracking-widest uppercase mb-4 font-body"
             style={{ color: "#F2C94C" }}
           >
-            Own Property in Tanzania?
+            Own Property in Dodoma, Tanzania?
           </p>
           <h2
             className="text-4xl md:text-5xl font-bold mb-6"
