@@ -1,9 +1,9 @@
-// app/components/ConditionalShell.tsx
 "use client";
 
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import WhatsAppButton from "./WhatsappButton";
 
 export default function ConditionalShell({
   children,
@@ -18,6 +18,7 @@ export default function ConditionalShell({
       {!isAdmin && <Navbar />}
       {children}
       {!isAdmin && <Footer />}
+      {!isAdmin && <WhatsAppButton />}
     </>
   );
 }
