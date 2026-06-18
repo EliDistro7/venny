@@ -86,7 +86,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("location", location);
-    formData.append("city", city);
+   formData.append("city", cityInput);
    
   
     formData.append("type", type);
