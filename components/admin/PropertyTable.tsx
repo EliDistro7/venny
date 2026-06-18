@@ -11,9 +11,7 @@ interface PropertyTableProps {
   onDeleted: (id: string) => void;
 }
 
-function formatPrice(price: number, currency: string) {
-  return `${currency} ${price.toLocaleString()}`;
-}
+
 
 export default function PropertyTable({ properties, onDeleted }: PropertyTableProps) {
   const [pendingDelete, setPendingDelete] = useState<AdminProperty | null>(null);
@@ -81,9 +79,7 @@ export default function PropertyTable({ properties, onDeleted }: PropertyTablePr
                     <span className="ml-1.5 text-brick-red font-medium">★ Featured</span>
                   )}
                 </p>
-                <p className="font-body text-sm text-text-soft mt-1 whitespace-nowrap">
-                  {formatPrice(property.price, property.currency)}
-                </p>
+            
               </div>
             </div>
 
@@ -127,11 +123,9 @@ export default function PropertyTable({ properties, onDeleted }: PropertyTablePr
                 Property
               </th>
               <th className="font-body text-xs uppercase tracking-wide text-text-soft/70 px-5 py-3">
-                City
+                District
               </th>
-              <th className="font-body text-xs uppercase tracking-wide text-text-soft/70 px-5 py-3">
-                Price
-              </th>
+           
               <th className="font-body text-xs uppercase tracking-wide text-text-soft/70 px-5 py-3">
                 Status
               </th>
@@ -167,9 +161,7 @@ export default function PropertyTable({ properties, onDeleted }: PropertyTablePr
                   </div>
                 </td>
                 <td className="px-5 py-4 font-body text-sm text-text-soft">{property.city}</td>
-                <td className="px-5 py-4 font-body text-sm text-text-soft whitespace-nowrap">
-                  {formatPrice(property.price, property.currency)}
-                </td>
+              
                 <td className="px-5 py-4">
                   <span
                     className={`font-body text-xs px-2.5 py-1 rounded-full ${

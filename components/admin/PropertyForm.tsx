@@ -133,7 +133,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className={inputClass}
-            placeholder="Luxury Penthouse in Masaki"
+            placeholder="Luxury Penthouse in Chamwino"
           />
         </Field>
         <Field label="Location" full>
@@ -141,10 +141,10 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             className={inputClass}
-            placeholder="Masaki Peninsula, Dar es Salaam"
+            
           />
         </Field>
-        <Field label="City">
+        <Field label="District">
           <select value={city} onChange={(e) => setCity(e.target.value)} className={inputClass}>
             {CITIES.map((c) => (
               <option key={c} value={c}>

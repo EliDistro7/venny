@@ -35,8 +35,8 @@ export default function Footer() {
             </p>
             <div className="flex gap-4">
               {[Share2, Camera, MessageCircle].map((Icon, i) => (
-                
-              <a    key={i}
+                <a
+                  key={i}
                   href="#"
                   className="w-9 h-9 rounded flex items-center justify-center transition-all duration-200 hover:scale-110"
                   style={{ backgroundColor: "rgba(160, 43, 47, 0.2)", color: "#F2C94C" }}
@@ -81,10 +81,10 @@ export default function Footer() {
               Cities
             </h4>
             <ul className="space-y-3 font-body text-sm">
-              {["Dar es Salaam", "Zanzibar", "Arusha", "Mwanza", "Dodoma", "Moshi"].map((city) => (
+              {["CBD", "Chamwino", "Kongwa", "Mpwapwa", "Bahi", "Chemba", "Kondoa"].map((city) => (
                 <li key={city}>
                   <Link
-                    href={`/properties?city=${city}`}
+                    href={`/properties?city=${encodeURIComponent(city)}`}
                     className="link-underline transition-colors hover:text-amber-300"
                   >
                     {city}

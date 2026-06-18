@@ -5,7 +5,7 @@ import PropertyCard from "./components/PropertyCard";
 import { properties, testimonials, getProperties } from "./data/properties";
 
 export default async function Home() {
- const allFeatured = await getProperties({ featured: true });
+  const allFeatured = await getProperties({ featured: true });
   const featured = allFeatured.slice(0, 3);
 
   return (
@@ -100,7 +100,15 @@ export default async function Home() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-3">
-            {["Dar es Salaam", "Zanzibar", "Arusha", "Mwanza"].map((city) => (
+            {[
+              "CBD",
+              "Chamwino",
+              "Kongwa",
+              "Mpwapwa",
+              "Bahi",
+              "Chemba",
+              "Kondoa"
+            ].map((city) => (
               <Link
                 key={city}
                 href={`/properties?city=${encodeURIComponent(city)}`}
@@ -155,53 +163,52 @@ export default async function Home() {
       </section>
 
       {/* ─── FEATURED PROPERTIES ─── */}
-   {/* ─── FEATURED PROPERTIES ─── */}
-{featured.length > 0 && (
-  <section className="py-20 px-6" style={{ backgroundColor: "#F8F5F0" }}>
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
-        <div>
-          <p
-            className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
-            style={{ color: "#A02B2F" }}
-          >
-            Handpicked for You
-          </p>
-          <h2
-            className="text-4xl font-bold"
-            style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
-          >
-            Featured Properties
-          </h2>
-        </div>
-        <Link
-          href="/properties"
-          className="flex items-center gap-2 mt-4 md:mt-0 text-sm font-body font-bold link-underline"
-          style={{ color: "#A02B2F" }}
-        >
-          View All Properties <ChevronRight size={16} />
-        </Link>
-      </div>
+      {featured.length > 0 && (
+        <section className="py-20 px-6" style={{ backgroundColor: "#F8F5F0" }}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+              <div>
+                <p
+                  className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
+                  style={{ color: "#A02B2F" }}
+                >
+                  Handpicked for You
+                </p>
+                <h2
+                  className="text-4xl font-bold"
+                  style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
+                >
+                  Featured Properties
+                </h2>
+              </div>
+              <Link
+                href="/properties"
+                className="flex items-center gap-2 mt-4 md:mt-0 text-sm font-body font-bold link-underline"
+                style={{ color: "#A02B2F" }}
+              >
+                View All Properties <ChevronRight size={16} />
+              </Link>
+            </div>
 
-      <div
-        className={`grid gap-8 grid-cols-1 ${
-          featured.length === 1
-            ? "md:grid-cols-1 max-w-md mx-auto"
-            : featured.length === 2
-            ? "md:grid-cols-2 max-w-3xl mx-auto"
-            : "md:grid-cols-3"
-        }`}
-      >
-        {featured.map((p) => (
-          <PropertyCard key={p.id} property={p} />
-        ))}
-      </div>
-    </div>
-  </section>
-)}
+            <div
+              className={`grid gap-8 grid-cols-1 ${
+                featured.length === 1
+                  ? "md:grid-cols-1 max-w-md mx-auto"
+                  : featured.length === 2
+                  ? "md:grid-cols-2 max-w-3xl mx-auto"
+                  : "md:grid-cols-3"
+              }`}
+            >
+              {featured.map((p) => (
+                <PropertyCard key={p.id} property={p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ─── LOCATION SPOTLIGHT ─── */}
-      <section className="py-20 px-6" >
+      <section className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <p
@@ -221,33 +228,45 @@ export default async function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
               {
-                city: "Dar es Salaam",
-                count: 420,
+                city: "CBD",
+                count: 120,
                 img: "/featured/f4.jpeg",
                 size: "md:col-span-2 md:row-span-2",
               },
               {
-                city: "Zanzibar",
-                count: 185,
+                city: "Chamwino",
+                count: 85,
                 img: "/featured/f11.jpeg",
                 size: "",
               },
               {
-                city: "Arusha",
-                count: 97,
+                city: "Kongwa",
+                count: 67,
                 img: "/featured/f13.jpeg",
                 size: "",
               },
               {
-                city: "Mwanza",
-                count: 63,
+                city: "Mpwapwa",
+                count: 43,
                 img: "/featured/f10.jpeg",
                 size: "",
               },
               {
-                city: "Dodoma",
-                count: 44,
+                city: "Bahi",
+                count: 34,
                 img: "/featured/f9.jpeg",
+                size: "",
+              },
+              {
+                city: "Chemba",
+                count: 28,
+                img: "/featured/f12.jpeg",
+                size: "",
+              },
+              {
+                city: "Kondoa",
+                count: 22,
+                img: "/featured/f8.jpeg",
                 size: "",
               },
             ].map((loc) => (
@@ -350,9 +369,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
- 
-
 
       {/* ─── CTA BANNER ─── */}
       <section className="relative py-24 overflow-hidden">
