@@ -38,8 +38,8 @@ export default function ContactPage() {
             <div className="space-y-6 mb-10">
               {[
                 { Icon: MapPin, label: "Address", value: "Haile Selassie Road, Masaki, Dar es Salaam, Tanzania" },
-                { Icon: Phone, label: "Phone", value: "+255 712 345 678" },
-                { Icon: Mail, label: "Email", value: "hello@vennyconstruction.co.tz" },
+                { Icon: Phone, label: "Phone", value: "+255 657 510 444" },
+                { Icon: Mail, label: "Email", value: "Vennycompany762@gmail.com" },
                 { Icon: Clock, label: "Office Hours", value: "Mon – Sat: 8:00 AM – 6:00 PM (EAT)" },
               ].map(({ Icon, label, value }) => (
                 <div key={label} className="flex gap-4">

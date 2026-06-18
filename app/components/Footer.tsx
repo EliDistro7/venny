@@ -109,11 +109,11 @@ export default function Footer() {
               </li>
               <li className="flex gap-3">
                 <Phone size={15} style={{ color: "#F2C94C", flexShrink: 0, marginTop: 2 }} />
-                <span>+255 712 345 678</span>
+                <span>+255 657 510 444</span>
               </li>
               <li className="flex gap-3">
                 <Mail size={15} style={{ color: "#F2C94C", flexShrink: 0, marginTop: 2 }} />
-                <span>hello@vennyconstruction.co.tz</span>
+                <span>Vennycompany762@gmail.com</span>
               </li>
             </ul>
           </div>
