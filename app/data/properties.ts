@@ -350,12 +350,29 @@ export async function getCities(): Promise<string[]> {
   return res.json();
 }
 
-export async function getCityStats(): Promise<{ city: string; count: number }[]> {
-  const res = await fetch(`${API_URL}/api/properties/cities/stats`, {
-    next: { revalidate: 60 },
-  });
-  if (!res.ok) return [];
-  return res.json();
+export async function getCityStats(): Promise<{ city: string; count: number; image: string }[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/properties/cities/stats`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) throw new Error();
+    return res.json();
+  } catch {
+    // Derive from static data — pick the first property image per city
+    const seen = new Map<string, { count: number; image: string }>();
+    for (const p of properties) {
+      if (!p.city) continue;
+      const existing = seen.get(p.city);
+      if (!existing) {
+        seen.set(p.city, { count: 1, image: p.image || "" });
+      } else {
+        existing.count++;
+      }
+    }
+    return Array.from(seen.entries())
+      .map(([city, { count, image }]) => ({ city, count, image }))
+      .sort((a, b) => b.count - a.count);
+  }
 }
 
 export async function getProperty(id: string): Promise<Property | null> {

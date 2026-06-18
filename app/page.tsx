@@ -4,33 +4,18 @@ import { Search, MapPin, TrendingUp, Shield, Users, ChevronRight } from "lucide-
 import PropertyCard from "./components/PropertyCard";
 import { getProperties, getCities, getCityStats } from "./data/properties";
 
-// One fallback image per city slot if no real image is available
-const SPOTLIGHT_IMAGES = [
-  "/featured/f4.jpeg",
-  "/featured/f11.jpeg",
-  "/featured/f13.jpeg",
-  "/featured/f10.jpeg",
-  "/featured/f9.jpeg",
-  "/featured/f12.jpeg",
-  "/featured/f2.jpeg",
-];
-
 export default async function Home() {
   const [allFeatured, cities, cityStats] = await Promise.all([
     getProperties({ featured: true }),
-    getCities(),                 // ["All Cities", "CBD", "Chamwino", ...]
-    getCityStats(),              // [{ city: "CBD", count: 120 }, ...]
+    getCities(),
+    getCityStats(),
   ]);
 
   const featured = allFeatured.slice(0, 3);
-
-  // Strip "All Cities" sentinel for display lists
   const displayCities = cities.filter((c) => c !== "All Cities");
 
-  // Build spotlight rows: top 7 by count, assign fallback images by index
   const spotlightCities = cityStats.slice(0, 7).map((s, i) => ({
     ...s,
-    img: SPOTLIGHT_IMAGES[i] ?? SPOTLIGHT_IMAGES[0],
     size: i === 0 ? "md:col-span-2 md:row-span-2" : "",
   }));
 
@@ -125,7 +110,6 @@ export default async function Home() {
             </Link>
           </div>
 
-          {/* Dynamic city pills */}
           <div className="flex flex-wrap justify-center gap-3">
             {displayCities.map((city) => (
               <Link
@@ -226,24 +210,23 @@ export default async function Home() {
         </section>
       )}
 
-
-    {/* ─── LOCATION SPOTLIGHT ─── */}
-{spotlightCities.length > 0 && (
-  <section className="py-20 px-6" style={{ backgroundColor: "#1C1C1E" }}>
+      {/* ─── LOCATION SPOTLIGHT ─── */}
+      {spotlightCities.length > 0 && (
+        <section className="py-20 px-6" style={{ backgroundColor: "#1C1C1E" }}>
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-14">
-           <p
-  className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
-  style={{ color: "#F2C94C" }}   // was #A02B2F
->
-  Explore Dodoma, Tanzania
-</p>
-<h2
-  className="text-4xl font-bold"
-  style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}   // was #1C1C1E
->
-  Properties by Destination
-</h2>
+              <p
+                className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
+                style={{ color: "#F2C94C" }}
+              >
+                Explore Tanzania
+              </p>
+              <h2
+                className="text-4xl font-bold"
+                style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
+              >
+                Properties by Destination
+              </h2>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -254,12 +237,16 @@ export default async function Home() {
                   className={`relative rounded-xl overflow-hidden group cursor-pointer ${loc.size}`}
                   style={{ minHeight: loc.size.includes("row-span") ? "380px" : "180px" }}
                 >
-                  <Image
-                    src={loc.img}
-                    alt={loc.city}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {loc.image ? (
+                    <Image
+                      src={loc.image}
+                      alt={loc.city}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0" style={{ backgroundColor: "#2C2C2E" }} />
+                  )}
                   <div
                     className="absolute inset-0"
                     style={{
@@ -326,7 +313,10 @@ export default async function Home() {
               <div
                 key={title}
                 className="rounded-xl p-8"
-                style={{ backgroundColor: "rgba(248, 245, 240, 0.05)", border: "1px solid rgba(242, 201, 76, 0.15)" }}
+                style={{
+                  backgroundColor: "rgba(248, 245, 240, 0.05)",
+                  border: "1px solid rgba(242, 201, 76, 0.15)",
+                }}
               >
                 <div
                   className="w-12 h-12 rounded-lg flex items-center justify-center mb-5"
@@ -340,7 +330,10 @@ export default async function Home() {
                 >
                   {title}
                 </h3>
-                <p className="text-sm leading-relaxed font-body" style={{ color: "rgba(248, 245, 240, 0.6)" }}>
+                <p
+                  className="text-sm leading-relaxed font-body"
+                  style={{ color: "rgba(248, 245, 240, 0.6)" }}
+                >
                   {desc}
                 </p>
               </div>
@@ -371,7 +364,7 @@ export default async function Home() {
             className="text-xs font-bold tracking-widest uppercase mb-4 font-body"
             style={{ color: "#F2C94C" }}
           >
-            Own Property in Dodoma, Tanzania?
+            Own Property in Tanzania?
           </p>
           <h2
             className="text-4xl md:text-5xl font-bold mb-6"
