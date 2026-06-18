@@ -266,7 +266,7 @@ export default async function Home() {
               {
                 city: "Kondoa",
                 count: 22,
-                img: "/featured/f8.jpeg",
+                img: "/featured/f9.jpeg",
                 size: "",
               },
             ].map((loc) => (
