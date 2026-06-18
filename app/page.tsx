@@ -1,12 +1,38 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Search, MapPin, TrendingUp, Shield, Users, ChevronRight, Star } from "lucide-react";
+import { Search, MapPin, TrendingUp, Shield, Users, ChevronRight } from "lucide-react";
 import PropertyCard from "./components/PropertyCard";
-import { properties, testimonials, getProperties } from "./data/properties";
+import { getProperties, getCities, getCityStats } from "./data/properties";
+
+// One fallback image per city slot if no real image is available
+const SPOTLIGHT_IMAGES = [
+  "/featured/f4.jpeg",
+  "/featured/f11.jpeg",
+  "/featured/f13.jpeg",
+  "/featured/f10.jpeg",
+  "/featured/f9.jpeg",
+  "/featured/f12.jpeg",
+  "/featured/f2.jpeg",
+];
 
 export default async function Home() {
-  const allFeatured = await getProperties({ featured: true });
+  const [allFeatured, cities, cityStats] = await Promise.all([
+    getProperties({ featured: true }),
+    getCities(),                 // ["All Cities", "CBD", "Chamwino", ...]
+    getCityStats(),              // [{ city: "CBD", count: 120 }, ...]
+  ]);
+
   const featured = allFeatured.slice(0, 3);
+
+  // Strip "All Cities" sentinel for display lists
+  const displayCities = cities.filter((c) => c !== "All Cities");
+
+  // Build spotlight rows: top 7 by count, assign fallback images by index
+  const spotlightCities = cityStats.slice(0, 7).map((s, i) => ({
+    ...s,
+    img: SPOTLIGHT_IMAGES[i] ?? SPOTLIGHT_IMAGES[0],
+    size: i === 0 ? "md:col-span-2 md:row-span-2" : "",
+  }));
 
   return (
     <main>
@@ -99,16 +125,9 @@ export default async function Home() {
             </Link>
           </div>
 
+          {/* Dynamic city pills */}
           <div className="flex flex-wrap justify-center gap-3">
-            {[
-              "CBD",
-              "Chamwino",
-              "Kongwa",
-              "Mpwapwa",
-              "Bahi",
-              "Chemba",
-              "Kondoa"
-            ].map((city) => (
+            {displayCities.map((city) => (
               <Link
                 key={city}
                 href={`/properties?city=${encodeURIComponent(city)}`}
@@ -143,7 +162,7 @@ export default async function Home() {
             {[
               { num: "1,200+", label: "Properties Listed" },
               { num: "850+", label: "Happy Clients" },
-              { num: "6", label: "Cities Covered" },
+              { num: `${displayCities.length}`, label: "Cities Covered" },
               { num: "15+", label: "Years Experience" },
             ].map((stat) => (
               <div key={stat.label}>
@@ -208,103 +227,62 @@ export default async function Home() {
       )}
 
       {/* ─── LOCATION SPOTLIGHT ─── */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <p
-              className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
-              style={{ color: "#A02B2F" }}
-            >
-              Explore Tanzania
-            </p>
-            <h2
-              className="text-4xl font-bold"
-              style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
-            >
-              Properties by Destination
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              {
-                city: "CBD",
-                count: 120,
-                img: "/featured/f4.jpeg",
-                size: "md:col-span-2 md:row-span-2",
-              },
-              {
-                city: "Chamwino",
-                count: 85,
-                img: "/featured/f11.jpeg",
-                size: "",
-              },
-              {
-                city: "Kongwa",
-                count: 67,
-                img: "/featured/f13.jpeg",
-                size: "",
-              },
-              {
-                city: "Mpwapwa",
-                count: 43,
-                img: "/featured/f10.jpeg",
-                size: "",
-              },
-              {
-                city: "Bahi",
-                count: 34,
-                img: "/featured/f9.jpeg",
-                size: "",
-              },
-              {
-                city: "Chemba",
-                count: 28,
-                img: "/featured/f12.jpeg",
-                size: "",
-              },
-              {
-                city: "Kondoa",
-                count: 22,
-                img: "/featured/f2.jpeg",
-                size: "",
-              },
-            ].map((loc) => (
-              <Link
-                key={loc.city}
-                href={`/properties?city=${encodeURIComponent(loc.city)}`}
-                className={`relative rounded-xl overflow-hidden group cursor-pointer ${loc.size}`}
-                style={{ minHeight: loc.size.includes("row-span") ? "380px" : "180px" }}
+      {spotlightCities.length > 0 && (
+        <section className="py-20 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-14">
+              <p
+                className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
+                style={{ color: "#A02B2F" }}
               >
-                <Image
-                  src={loc.img}
-                  alt={loc.city}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(to top, rgba(28,28,30,0.85) 0%, rgba(28,28,30,0.1) 60%)",
-                  }}
-                />
-                <div className="absolute bottom-5 left-5">
-                  <h3
-                    style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
-                    className="text-xl font-bold"
-                  >
-                    {loc.city}
-                  </h3>
-                  <p className="text-sm font-body" style={{ color: "#F2C94C" }}>
-                    {loc.count} properties
-                  </p>
-                </div>
-              </Link>
-            ))}
+                Explore Tanzania
+              </p>
+              <h2
+                className="text-4xl font-bold"
+                style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
+              >
+                Properties by Destination
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {spotlightCities.map((loc) => (
+                <Link
+                  key={loc.city}
+                  href={`/properties?city=${encodeURIComponent(loc.city)}`}
+                  className={`relative rounded-xl overflow-hidden group cursor-pointer ${loc.size}`}
+                  style={{ minHeight: loc.size.includes("row-span") ? "380px" : "180px" }}
+                >
+                  <Image
+                    src={loc.img}
+                    alt={loc.city}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        "linear-gradient(to top, rgba(28,28,30,0.85) 0%, rgba(28,28,30,0.1) 60%)",
+                    }}
+                  />
+                  <div className="absolute bottom-5 left-5">
+                    <h3
+                      style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
+                      className="text-xl font-bold"
+                    >
+                      {loc.city}
+                    </h3>
+                    <p className="text-sm font-body" style={{ color: "#F2C94C" }}>
+                      {loc.count} {loc.count === 1 ? "property" : "properties"}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ─── WHY US ─── */}
       <section className="py-20 px-6" style={{ backgroundColor: "#1C1C1E" }}>
@@ -414,7 +392,7 @@ export default async function Home() {
             className="inline-flex items-center gap-2 px-10 py-4 rounded text-base font-bold font-body transition-all hover:scale-105"
             style={{
               background: "linear-gradient(135deg, #A02B2F, #7E2125)",
-              color: "#F8F5F0"
+              color: "#F8F5F0",
             }}
           >
             List Your Property Free

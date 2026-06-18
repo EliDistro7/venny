@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import PropertyCard from "../components/PropertyCard";
-import { cities, propertyTypes, dealTypes } from "../data/properties";
+import {  propertyTypes, dealTypes } from "../data/properties";
 import { Property } from "../types";
 
 const statusOptions = [
@@ -16,8 +16,10 @@ const statusOptions = [
 
 export default function PropertiesClient({
   properties = [],
+  cities = ["All Cities"],
 }: {
   properties?: Property[];
+  cities?: string[];
 }) {
   const searchParams = useSearchParams();
 

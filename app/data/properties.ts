@@ -336,6 +336,22 @@ export async function getProperties(params?: {
   return (await res.json()).map(normalize);
 }
 
+export async function getCities(): Promise<string[]> {
+  const res = await fetch(`${API_URL}/api/properties/cities`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) return ["All Cities"];
+  return res.json();
+}
+
+export async function getCityStats(): Promise<{ city: string; count: number }[]> {
+  const res = await fetch(`${API_URL}/api/properties/cities/stats`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export async function getProperty(id: string): Promise<Property | null> {
   const res = await fetch(`${API_URL}/api/properties/${id}`, { next: { revalidate: 60 } });
   if (!res.ok) return null;
