@@ -45,8 +45,16 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   const [removedImages, setRemovedImages] = useState<string[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
 
+  const [cityInput, setCityInput] = useState(property?.city || "");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+
+  const filteredCities = CITIES.filter((c) =>
+  c.toLowerCase().includes(cityInput.toLowerCase())
+);
 
   function handleNewFiles(files: FileList | null) {
     if (!files) return;
@@ -144,15 +152,40 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             
           />
         </Field>
-        <Field label="District">
-          <select value={city} onChange={(e) => setCity(e.target.value)} className={inputClass}>
-            {CITIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </Field>
+      <Field label="District">
+  <div className="relative">
+    <input
+      value={cityInput}
+      onChange={(e) => {
+        setCityInput(e.target.value);
+        setCity(e.target.value);
+        setShowSuggestions(true);
+      }}
+      onFocus={() => setShowSuggestions(true)}
+      onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+      className={inputClass}
+      placeholder="Type or select a district"
+      autoComplete="off"
+    />
+    {showSuggestions && filteredCities.length > 0 && (
+      <ul className="absolute z-10 w-full mt-1 bg-white border border-stone-grey/30 rounded-md shadow-md max-h-48 overflow-y-auto">
+        {filteredCities.map((c) => (
+          <li
+            key={c}
+            onMouseDown={() => {
+              setCityInput(c);
+              setCity(c);
+              setShowSuggestions(false);
+            }}
+            className="px-3 py-2 font-body text-sm text-charcoal-roof hover:bg-mist cursor-pointer"
+          >
+            {c}
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Field>
         <Field label="Category">
           <select
             value={category}

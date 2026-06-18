@@ -37,7 +37,7 @@ export default function ContactPage() {
             </h2>
             <div className="space-y-6 mb-10">
               {[
-                { Icon: MapPin, label: "Address", value: "Haile Selassie Road, Masaki, Dar es Salaam, Tanzania" },
+                { Icon: MapPin, label: "Address", value: "Mbeya street, Uhindini Dodoma" },
                 { Icon: Phone, label: "Phone", value: "+255 657 510 444" },
                 { Icon: Mail, label: "Email", value: "Vennycompany762@gmail.com" },
                 { Icon: Clock, label: "Office Hours", value: "Mon – Sat: 8:00 AM – 6:00 PM (EAT)" },

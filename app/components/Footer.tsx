@@ -105,7 +105,7 @@ export default function Footer() {
             <ul className="space-y-4 font-body text-sm">
               <li className="flex gap-3">
                 <MapPin size={15} style={{ color: "#F2C94C", flexShrink: 0, marginTop: 2 }} />
-                <span>Haile Selassie Road, Masaki, Dar es Salaam, Tanzania</span>
+                <span>Mbeya street, Uhindini Dodoma</span>
               </li>
               <li className="flex gap-3">
                 <Phone size={15} style={{ color: "#F2C94C", flexShrink: 0, marginTop: 2 }} />
