@@ -33,12 +33,7 @@ export default async function PropertyDetail({
     .filter((p: Property) => p.id !== property.id)
     .slice(0, 3);
 
-  const formatPrice = () => {
-    const formatted = new Intl.NumberFormat("en-US").format(property.price);
-    return property.type === "rent"
-      ? `${property.currency} ${formatted}/mo`
-      : `${property.currency} ${formatted}`;
-  };
+  const isDelivered = property.status === "delivered";
 
   return (
     <main style={{ backgroundColor: "#F8F5F0" }} className="min-h-screen pt-20">
@@ -67,15 +62,17 @@ export default async function PropertyDetail({
           Back to listings
         </Link>
         <div className="absolute bottom-6 left-6 right-6">
-          <span
-            className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body uppercase inline-block mb-3"
-            style={{
-              backgroundColor: property.type === "sale" ? "#A02B2F" : "#F2C94C",
-              color: property.type === "sale" ? "#F8F5F0" : "#1C1C1E",
-            }}
-          >
-            {property.type === "sale" ? "For Sale" : "For Rent"}
-          </span>
+          {!isDelivered && (
+            <span
+              className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body uppercase inline-block mb-3"
+              style={{
+                backgroundColor: property.type === "sale" ? "#A02B2F" : "#F2C94C",
+                color: property.type === "sale" ? "#F8F5F0" : "#1C1C1E",
+              }}
+            >
+              {property.type === "sale" ? "For Sale" : "For Rent"}
+            </span>
+          )}
           <h1
             className="text-3xl md:text-5xl font-bold mb-2"
             style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
@@ -92,31 +89,21 @@ export default async function PropertyDetail({
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Price banner */}
+        {/* Caption banner */}
         <div
-          className="rounded-xl p-6 mb-8 flex items-baseline justify-between flex-wrap gap-4"
+          className="rounded-xl p-6 mb-8"
           style={{ backgroundColor: "#FFFFFF", boxShadow: "0 2px 12px rgba(28,28,30,0.08)" }}
         >
-          <div>
-            <p
-              className="text-3xl font-bold"
-              style={{ color: "#A02B2F", fontFamily: "Georgia, serif" }}
-            >
-              {formatPrice()}
-            </p>
-            <p className="text-sm font-body mt-1" style={{ color: "#6B6558" }}>
-              {property.type === "sale" ? "Purchase price" : "Monthly rent"}
-            </p>
-          </div>
-          <span
-            className="px-4 py-2 rounded text-sm font-bold tracking-wider font-body uppercase"
-            style={{
-              backgroundColor: property.type === "sale" ? "#A02B2F" : "#F2C94C",
-              color: property.type === "sale" ? "#F8F5F0" : "#1C1C1E",
-            }}
+          <p
+            className="text-sm font-bold uppercase tracking-wide font-body"
+            style={{ color: "#A02B2F" }}
           >
-            {property.type === "sale" ? "For Sale" : "For Rent"}
-          </span>
+            {isDelivered
+              ? "One of the projects completed by Venny Construction & Real Estate"
+              : property.type === "sale"
+              ? "For Sale — Contact for Price"
+              : "For Rent — Contact for Price"}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -220,10 +207,10 @@ export default async function PropertyDetail({
                 </div>
                 <div className="flex justify-between">
                   <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
-                    Status
+                    Listing
                   </dt>
                   <dd className="font-bold text-sm font-body" style={{ color: "#1C1C1E" }}>
-                    {property.type === "sale" ? "For Sale" : "For Rent"}
+                    {isDelivered ? "Completed project" : property.type === "sale" ? "For Sale" : "For Rent"}
                   </dd>
                 </div>
                 <div className="flex justify-between">
@@ -274,15 +261,13 @@ export default async function PropertyDetail({
                   paddingTop: "24px",
                 }}
               >
-                <p
-                  className="text-3xl font-bold"
-                  style={{ color: "#A02B2F", fontFamily: "Georgia, serif" }}
+                <Link
+                  href="/contact"
+                  className="block w-full text-center px-6 py-3 rounded font-body text-sm font-bold transition-all hover:opacity-90"
+                  style={{ backgroundColor: "#A02B2F", color: "#F8F5F0" }}
                 >
-                  {formatPrice()}
-                </p>
-                <p className="text-sm font-body mt-1" style={{ color: "#6B6558" }}>
-                  {property.type === "sale" ? "Purchase price" : "Monthly rent"}
-                </p>
+                  Enquire About This Property
+                </Link>
               </div>
             </div>
           </div>

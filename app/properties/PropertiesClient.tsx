@@ -7,19 +7,12 @@ import PropertyCard from "../components/PropertyCard";
 import { cities, propertyTypes, dealTypes } from "../data/properties";
 import { Property } from "../types";
 
-const MAX_PRICE = 3_500_000_000;
-const MIN_PRICE = 2_000_000;
-const PRICE_STEP = 1_000_000;
-
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "work_in_progress", label: "Work in Progress" },
   { value: "finished", label: "Finished" },
   { value: "delivered", label: "Delivered to Customer" },
 ];
-
-const formatTZS = (amount: number) =>
-  `TSh ${new Intl.NumberFormat("en-TZ").format(amount)}`;
 
 export default function PropertiesClient({
   properties = [],
@@ -31,7 +24,6 @@ export default function PropertiesClient({
   const [city, setCity] = useState(searchParams.get("city") || "All Cities");
   const [category, setCategory] = useState("All Types");
   const [deal, setDeal] = useState(searchParams.get("type") || "All");
-  const [maxPrice, setMaxPrice] = useState(MAX_PRICE);
   const [showFilters, setShowFilters] = useState(false);
   const [status, setStatus] = useState("all");
 
@@ -42,20 +34,15 @@ export default function PropertiesClient({
       const cityMatch = city === "All Cities" || p.city === city;
       const categoryMatch = category === "All Types" || p.category === category;
       const dealMatch = deal === "All" || p.type === deal;
-      const priceMatch = p.price <= maxPrice;
-      // Status only narrows results when a specific status is chosen AND the
-      // property has a status field — land/commercial don't carry one.
-      const statusMatch =
-        status === "all" || p.status === status;
-      return cityMatch && categoryMatch && dealMatch && priceMatch && statusMatch;
+      const statusMatch = status === "all" || p.status === status;
+      return cityMatch && categoryMatch && dealMatch && statusMatch;
     });
-  }, [properties, city, category, deal, maxPrice, status]);
+  }, [properties, city, category, deal, status]);
 
   const resetFilters = () => {
     setCity("All Cities");
     setCategory("All Types");
     setDeal("All");
-    setMaxPrice(MAX_PRICE);
     setStatus("all");
   };
 
@@ -197,7 +184,7 @@ export default function PropertiesClient({
               </div>
 
               {/* Project Status */}
-              <div className="mb-6">
+              <div>
                 <p
                   className="text-xs font-bold tracking-wider uppercase mb-3 font-body"
                   style={{ color: "#6B6558" }}
@@ -220,40 +207,6 @@ export default function PropertiesClient({
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* Price */}
-              <div>
-                <p
-                  className="text-xs font-bold tracking-wider uppercase mb-1 font-body"
-                  style={{ color: "#6B6558" }}
-                >
-                  Max Price
-                </p>
-                <p
-                  className="text-sm font-bold font-body mb-3"
-                  style={{ color: "#1C1C1E" }}
-                >
-                  {formatTZS(maxPrice)}
-                </p>
-                <input
-                  type="range"
-                  min={MIN_PRICE}
-                  max={MAX_PRICE}
-                  step={PRICE_STEP}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full"
-                  style={{ accentColor: "#A02B2F" }}
-                />
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs font-body" style={{ color: "#6B6558" }}>
-                    {formatTZS(MIN_PRICE)}
-                  </span>
-                  <span className="text-xs font-body" style={{ color: "#6B6558" }}>
-                    {formatTZS(MAX_PRICE)}
-                  </span>
-                </div>
               </div>
             </div>
           </aside>

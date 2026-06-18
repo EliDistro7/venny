@@ -10,7 +10,16 @@ interface PropertyFormProps {
   property?: AdminProperty;
 }
 
-const CITIES = ["Dar es Salaam", "Zanzibar", "Arusha", "Mwanza", "Dodoma"];
+const CITIES = [
+ 
+  "CBD",
+  "Chamwino",
+  "Kongwa",
+  "Mpwapwa",
+  "Bahi",
+  "Chemba",
+  "Kondoa"
+];;
 const CATEGORIES: PropertyCategory[] = ["apartment", "villa", "house", "land", "commercial"];
 
 export default function PropertyForm({ mode, property }: PropertyFormProps) {
@@ -20,8 +29,8 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   const [title, setTitle] = useState(property?.title || "");
   const [location, setLocation] = useState(property?.location || "");
   const [city, setCity] = useState(property?.city || CITIES[0]);
-  const [price, setPrice] = useState(property?.price?.toString() || "");
-  const [currency, setCurrency] = useState(property?.currency || "TZS");
+  
+
   const [type, setType] = useState<PropertyType>(property?.type || "sale");
   const [category, setCategory] = useState<PropertyCategory>(property?.category || "house");
   const [bedrooms, setBedrooms] = useState(property?.bedrooms?.toString() || "0");
@@ -61,7 +70,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
     e.preventDefault();
     setError("");
 
-    if (!title || !location || !price || !area) {
+    if (!title || !location || !area) {
       setError("Please fill in title, location, price and area.");
       return;
     }
@@ -70,8 +79,8 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
     formData.append("title", title);
     formData.append("location", location);
     formData.append("city", city);
-    formData.append("price", price);
-    formData.append("currency", currency);
+   
+  
     formData.append("type", type);
     formData.append("category", category);
     formData.append("bedrooms", isLand() ? "0" : bedrooms);
@@ -193,29 +202,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             <option value="work_in_progress">Work in progress</option>
           </select>
         </Field>
-        <Field label="Price" full>
-          {/*
-            Moved to `full` width and changed the currency box to a fixed
-            w-16 so the number input gets all the remaining space on narrow
-            screens instead of both competing for a half-column.
-          */}
-          <div className="flex gap-2">
-            <input
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className={`${inputClass} w-16 shrink-0`}
-              maxLength={3}
-            />
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className={inputClass}
-              placeholder="2210000000"
-              min={0}
-            />
-          </div>
-        </Field>
+       
         <Field label="Area (sqm)">
           <input
             type="number"

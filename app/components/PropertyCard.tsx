@@ -13,23 +13,16 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   delivered: { label: "Delivered to Customer", color: "#4A5568" },
 };
 
+const categoryLabel: Record<string, string> = {
+  apartment: "Apartment",
+  villa: "Villa",
+  house: "House",
+  land: "Land",
+  commercial: "Commercial",
+};
+
 export default function PropertyCard({ property }: PropertyCardProps) {
-  // Once a property is delivered, it's no longer the company's to sell —
-  // never show a price or "For Sale/Rent" tag on it, regardless of category.
   const isDelivered = property.status === "delivered";
-
-  const formatPrice = (price: number, type: string) => {
-    const formatted = `TSh ${new Intl.NumberFormat("en-TZ").format(price)}`;
-    return type === "rent" ? `${formatted}/mo` : formatted;
-  };
-
-  const categoryLabel: Record<string, string> = {
-    apartment: "Apartment",
-    villa: "Villa",
-    house: "House",
-    land: "Land",
-    commercial: "Commercial",
-  };
 
   return (
     <Link href={`/properties/${property.id}`} className="block group">
@@ -93,22 +86,19 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
         {/* Content */}
         <div className="p-5">
-          {/* Price OR completed-project caption */}
-          {isDelivered ? (
-            <p
-              className="text-sm font-bold mb-1 font-body uppercase tracking-wide"
-              style={{ color: "#A02B2F" }}
-            >
-              One of the projects completed by Venny Construction &amp; Real Estate
-            </p>
-          ) : (
-            <p
-              className="text-2xl font-bold mb-1 font-display"
-              style={{ color: "#A02B2F" }}
-            >
-              {formatPrice(property.price, property.type)}
-            </p>
-          )}
+          {/* Caption */}
+          <p
+            className="text-sm font-bold mb-1 font-body uppercase tracking-wide"
+            style={{ color: "#A02B2F" }}
+          >
+            {isDelivered ? (
+              <>One of the projects completed by Venny Construction &amp; Real Estate</>
+            ) : property.type === "sale" ? (
+              "For Sale — Contact for Price"
+            ) : (
+              "For Rent — Contact for Price"
+            )}
+          </p>
 
           {/* Title */}
           <h3
@@ -127,7 +117,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
 
           {/* Stats */}
-          {property.category !== "land" && (
+          {property.category !== "land" ? (
             <div
               className="flex gap-4 pt-4 font-body text-xs"
               style={{
@@ -152,8 +142,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 {property.area.toLocaleString()} m²
               </span>
             </div>
-          )}
-          {property.category === "land" && (
+          ) : (
             <div
               className="pt-4 font-body text-xs"
               style={{
