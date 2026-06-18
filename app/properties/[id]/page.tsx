@@ -12,6 +12,7 @@ import {
 import { getProperty, getProperties } from "../../data/properties";
 import PropertyCard from "../../components/PropertyCard";
 import { Property } from "../../types";
+import PropertyImageCarousel from "../../components/PropertyImageCarousel";
 
 export async function generateStaticParams() {
   const properties = await getProperties();
@@ -35,33 +36,29 @@ export default async function PropertyDetail({
 
   const isDelivered = property.status === "delivered";
 
+  // Resolve image list — use images[] if present, fall back to single image
+  const imageList = (property.images && property.images.length > 0)
+    ? property.images
+    : [property.image];
+
   return (
     <main style={{ backgroundColor: "#F8F5F0" }} className="min-h-screen pt-20">
-      {/* Hero image */}
-      <div className="relative h-[50vh] md:h-[60vh]">
-        <Image
-          src={property.image}
-          alt={property.title}
-          fill
-          className="object-cover"
-          priority
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to top, rgba(28,28,30,0.7) 0%, rgba(28,28,30,0.1) 50%)",
-          }}
-        />
+      {/* Hero carousel */}
+      <div className="relative">
+        <PropertyImageCarousel images={imageList} title={property.title} />
+
+        {/* Back button — sits above carousel */}
         <Link
           href="/properties"
-          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded font-body text-sm font-bold"
+          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded font-body text-sm font-bold z-30"
           style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#1C1C1E" }}
         >
           <ChevronLeft size={16} />
           Back to listings
         </Link>
-        <div className="absolute bottom-6 left-6 right-6">
+
+        {/* Title/location overlay */}
+        <div className="absolute bottom-6 left-6 right-6 z-20">
           {!isDelivered && (
             <span
               className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body uppercase inline-block mb-3"
@@ -87,7 +84,7 @@ export default async function PropertyDetail({
           </div>
         </div>
       </div>
-
+      
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Caption banner */}
         <div

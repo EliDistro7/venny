@@ -3,15 +3,14 @@ export interface Property {
   title: string;
   location: string;
   city: string;
- 
   status?: "work_in_progress" | "finished" | "delivered";
-  
   type: "sale" | "rent";
   category: "apartment" | "villa" | "land" | "commercial" | "house";
   bedrooms: number;
   bathrooms: number;
   area: number;
-  image: string;
+  image: string;       // keep as primary/fallback
+  images?: string[];   // ← add this
   featured: boolean;
   description: string;
   amenities: string[];
