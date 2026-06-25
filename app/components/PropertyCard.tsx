@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Bed, Bath, Maximize } from "lucide-react";
+import { MapPin, Bed, Bath, Maximize, Video } from "lucide-react";
 import { Property } from "../types";
 
 interface PropertyCardProps {
@@ -21,8 +21,17 @@ const categoryLabel: Record<string, string> = {
   commercial: "Commercial",
 };
 
+const availabilityConfig: Record<string, { label: string; color: string }> = {
+  sold: { label: "Sold", color: "#1C1C1E" },
+  rented: { label: "Rented", color: "#1C1C1E" },
+  reserved: { label: "Reserved", color: "#D9822B" },
+};
+
 export default function PropertyCard({ property }: PropertyCardProps) {
   const isDelivered = property.status === "delivered";
+  const unavailable = property.availability && property.availability !== "available";
+  const availBadge = unavailable ? availabilityConfig[property.availability!] : null;
+  const hasVideos = (property.videos?.length ?? 0) > 0;
 
   return (
     <Link href={`/properties/${property.id}`} className="block group">
@@ -39,9 +48,29 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             src={property.image}
             alt={property.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
+              unavailable ? "brightness-75" : ""
+            }`}
           />
-          {/* Badges */}
+
+          {/* Unavailability overlay label */}
+          {availBadge && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span
+                className="px-5 py-2 rounded text-sm font-bold tracking-widest font-body uppercase rotate-[-15deg]"
+                style={{
+                  backgroundColor: availBadge.color,
+                  color: "#FFFFFF",
+                  opacity: 0.92,
+                  letterSpacing: "0.15em",
+                }}
+              >
+                {availBadge.label}
+              </span>
+            </div>
+          )}
+
+          {/* Top-left badges */}
           <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
             {!isDelivered && (
               <span
@@ -60,7 +89,8 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             >
               {categoryLabel[property.category]}
             </span>
-            {property.category === "house" && property.status && (
+            {/* Status badge: show for any category that has a status, not just houses */}
+            {property.status && (
               <span
                 className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body"
                 style={{
@@ -72,16 +102,27 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               </span>
             )}
           </div>
-          {property.featured && (
-            <div className="absolute top-3 right-3">
+
+          {/* Top-right badges */}
+          <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
+            {property.featured && (
               <span
                 className="px-2 py-1 rounded text-xs font-bold tracking-wider font-body"
                 style={{ backgroundColor: "#F2C94C", color: "#1C1C1E" }}
               >
                 ✦ Featured
               </span>
-            </div>
-          )}
+            )}
+            {hasVideos && (
+              <span
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs font-bold font-body"
+                style={{ backgroundColor: "rgba(0,0,0,0.65)", color: "#FFFFFF" }}
+              >
+                <Video size={11} />
+                Video
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Content */}

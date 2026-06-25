@@ -11,25 +11,29 @@ interface PropertyFormProps {
 }
 
 const CITIES = [
- 
   "CBD",
   "Chamwino",
   "Kongwa",
   "Mpwapwa",
   "Bahi",
   "Chemba",
-  "Kondoa"
-];;
+  "Kondoa",
+];
+
 const CATEGORIES: PropertyCategory[] = ["apartment", "villa", "house", "land", "commercial"];
+
+type AvailabilityType = "available" | "sold" | "rented" | "reserved";
 
 export default function PropertyForm({ mode, property }: PropertyFormProps) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState(property?.title || "");
   const [location, setLocation] = useState(property?.location || "");
+  const [cityInput, setCityInput] = useState(property?.city || "");
   const [city, setCity] = useState(property?.city || CITIES[0]);
-  
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const [type, setType] = useState<PropertyType>(property?.type || "sale");
   const [category, setCategory] = useState<PropertyCategory>(property?.category || "house");
@@ -37,64 +41,81 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   const [bathrooms, setBathrooms] = useState(property?.bathrooms?.toString() || "0");
   const [area, setArea] = useState(property?.area?.toString() || "");
   const [status, setStatus] = useState<PropertyStatus>(property?.status || "delivered");
+  const [availability, setAvailability] = useState<AvailabilityType>(
+    (property?.availability as AvailabilityType) || "available"
+  );
   const [featured, setFeatured] = useState(property?.featured || false);
   const [description, setDescription] = useState(property?.description || "");
   const [amenities, setAmenities] = useState(property?.amenities?.join(", ") || "");
 
+  // Images
   const [existingImages, setExistingImages] = useState(property?.images || []);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
-  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
 
-  const [cityInput, setCityInput] = useState(property?.city || "");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  // Videos
+  const [existingVideos, setExistingVideos] = useState<string[]>(property?.videos || []);
+  const [removedVideos, setRemovedVideos] = useState<string[]>([]);
+  const [newVideoFiles, setNewVideoFiles] = useState<File[]>([]);
 
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-
   const filteredCities = CITIES.filter((c) =>
-  c.toLowerCase().includes(cityInput.toLowerCase())
-);
-
-  function handleNewFiles(files: FileList | null) {
-    if (!files) return;
-    setNewFiles((prev) => [...prev, ...Array.from(files)]);
-  }
-
-  function removeNewFile(index: number) {
-    setNewFiles((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function removeExistingImage(url: string) {
-    setExistingImages((prev) => prev.filter((u) => u !== url));
-    setRemovedImages((prev) => [...prev, url]);
-  }
+    c.toLowerCase().includes(cityInput.toLowerCase())
+  );
 
   function isLand() {
     return category === "land";
   }
 
+  // ── Image handlers ──────────────────────────────────────────────
+  function handleNewImages(files: FileList | null) {
+    if (!files) return;
+    setNewImageFiles((prev) => [...prev, ...Array.from(files)]);
+  }
+  function removeNewImage(index: number) {
+    setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+  function removeExistingImage(url: string) {
+    setExistingImages((prev) => prev.filter((u) => u !== url));
+    setRemovedImages((prev) => [...prev, url]);
+  }
+
+  // ── Video handlers ───────────────────────────────────────────────
+  function handleNewVideos(files: FileList | null) {
+    if (!files) return;
+    setNewVideoFiles((prev) => [...prev, ...Array.from(files)]);
+  }
+  function removeNewVideo(index: number) {
+    setNewVideoFiles((prev) => prev.filter((_, i) => i !== index));
+  }
+  function removeExistingVideo(url: string) {
+    setExistingVideos((prev) => prev.filter((u) => u !== url));
+    setRemovedVideos((prev) => [...prev, url]);
+  }
+
+  // ── Submit ───────────────────────────────────────────────────────
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
 
     if (!title || !location || !area) {
-      setError("Please fill in title, location, price and area.");
+      setError("Please fill in title, location, and area.");
       return;
     }
 
     const formData = new FormData();
     formData.append("title", title);
     formData.append("location", location);
-   formData.append("city", cityInput);
-   
-  
+    formData.append("city", cityInput);
     formData.append("type", type);
     formData.append("category", category);
     formData.append("bedrooms", isLand() ? "0" : bedrooms);
     formData.append("bathrooms", isLand() ? "0" : bathrooms);
     formData.append("area", area);
     formData.append("status", status);
+    formData.append("availability", availability);
     formData.append("featured", String(featured));
     formData.append("description", description);
     formData.append(
@@ -106,9 +127,13 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
           .filter(Boolean)
       )
     );
-    newFiles.forEach((file) => formData.append("images", file));
-    if (mode === "edit" && removedImages.length) {
-      formData.append("removeImages", JSON.stringify(removedImages));
+
+    newImageFiles.forEach((file) => formData.append("images", file));
+    newVideoFiles.forEach((file) => formData.append("videos", file));
+
+    if (mode === "edit") {
+      if (removedImages.length) formData.append("removeImages", JSON.stringify(removedImages));
+      if (removedVideos.length) formData.append("removeVideos", JSON.stringify(removedVideos));
     }
 
     setSaving(true);
@@ -127,7 +152,6 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   }
 
   return (
-    // Added px-4 sm:px-0 so the form isn't flush against the screen edge on mobile
     <form onSubmit={handleSubmit} className="max-w-3xl px-4 sm:px-0">
       {error && (
         <div className="bg-brick-red/10 border border-brick-red/30 text-brick-red font-body text-sm rounded-md px-4 py-3 mb-6">
@@ -135,6 +159,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
         </div>
       )}
 
+      {/* ── Basic info ─────────────────────────────────────────── */}
       <Section title="Basic info">
         <Field label="Title" full>
           <input
@@ -149,43 +174,42 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             className={inputClass}
-            
           />
         </Field>
-      <Field label="District">
-  <div className="relative">
-    <input
-      value={cityInput}
-      onChange={(e) => {
-        setCityInput(e.target.value);
-        setCity(e.target.value);
-        setShowSuggestions(true);
-      }}
-      onFocus={() => setShowSuggestions(true)}
-      onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-      className={inputClass}
-      placeholder="Type or select a district"
-      autoComplete="off"
-    />
-    {showSuggestions && filteredCities.length > 0 && (
-      <ul className="absolute z-10 w-full mt-1 bg-white border border-stone-grey/30 rounded-md shadow-md max-h-48 overflow-y-auto">
-        {filteredCities.map((c) => (
-          <li
-            key={c}
-            onMouseDown={() => {
-              setCityInput(c);
-              setCity(c);
-              setShowSuggestions(false);
-            }}
-            className="px-3 py-2 font-body text-sm text-charcoal-roof hover:bg-mist cursor-pointer"
-          >
-            {c}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</Field>
+        <Field label="District">
+          <div className="relative">
+            <input
+              value={cityInput}
+              onChange={(e) => {
+                setCityInput(e.target.value);
+                setCity(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              className={inputClass}
+              placeholder="Type or select a district"
+              autoComplete="off"
+            />
+            {showSuggestions && filteredCities.length > 0 && (
+              <ul className="absolute z-10 w-full mt-1 bg-white border border-stone-grey/30 rounded-md shadow-md max-h-48 overflow-y-auto">
+                {filteredCities.map((c) => (
+                  <li
+                    key={c}
+                    onMouseDown={() => {
+                      setCityInput(c);
+                      setCity(c);
+                      setShowSuggestions(false);
+                    }}
+                    className="px-3 py-2 font-body text-sm text-charcoal-roof hover:bg-mist cursor-pointer"
+                  >
+                    {c}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </Field>
         <Field label="Category">
           <select
             value={category}
@@ -201,9 +225,9 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
         </Field>
       </Section>
 
+      {/* ── Pricing & specs ────────────────────────────────────── */}
       <Section title="Pricing & specs">
         <Field label="Listing">
-          {/* min-h-[44px] ensures both buttons meet the 44px touch-target minimum */}
           <div className="flex gap-2">
             <button
               type="button"
@@ -225,6 +249,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             </button>
           </div>
         </Field>
+
         <Field label="Build status">
           <select
             value={status}
@@ -232,10 +257,24 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             className={inputClass}
           >
             <option value="delivered">Delivered</option>
+            <option value="finished">Finished</option>
             <option value="work_in_progress">Work in progress</option>
           </select>
         </Field>
-       
+
+        <Field label="Availability">
+          <select
+            value={availability}
+            onChange={(e) => setAvailability(e.target.value as AvailabilityType)}
+            className={inputClass}
+          >
+            <option value="available">Available</option>
+            <option value="reserved">Reserved</option>
+            <option value="sold">Sold</option>
+            <option value="rented">Rented</option>
+          </select>
+        </Field>
+
         <Field label="Area (sqm)">
           <input
             type="number"
@@ -245,6 +284,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             min={0}
           />
         </Field>
+
         {!isLand() && (
           <>
             <Field label="Bedrooms">
@@ -267,6 +307,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             </Field>
           </>
         )}
+
         <Field label="Featured listing">
           <label className="flex items-center gap-2 mt-1 cursor-pointer">
             <input
@@ -280,6 +321,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
         </Field>
       </Section>
 
+      {/* ── Description & amenities ────────────────────────────── */}
       <Section title="Description & amenities">
         <Field label="Description" full>
           <textarea
@@ -299,10 +341,10 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
         </Field>
       </Section>
 
+      {/* ── Photos ─────────────────────────────────────────────── */}
       <Section title="Photos">
         <div className="col-span-2">
           {existingImages.length > 0 && (
-            // w-20 h-20 on mobile (down from w-24 h-24) to fit more per row
             <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
               {existingImages.map((url) => (
                 <div
@@ -314,7 +356,6 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
                   <button
                     type="button"
                     onClick={() => removeExistingImage(url)}
-                    // Enlarged tap target: w-6 h-6 on mobile
                     className="absolute top-1 right-1 w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
                     aria-label="Remove image"
                   >
@@ -325,9 +366,9 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
             </div>
           )}
 
-          {newFiles.length > 0 && (
+          {newImageFiles.length > 0 && (
             <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
-              {newFiles.map((file, i) => (
+              {newImageFiles.map((file, i) => (
                 <div
                   key={i}
                   className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-md overflow-hidden border border-window-gold/60"
@@ -336,7 +377,7 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
                   <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
                   <button
                     type="button"
-                    onClick={() => removeNewFile(i)}
+                    onClick={() => removeNewImage(i)}
                     className="absolute top-1 right-1 w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
                     aria-label="Remove image"
                   >
@@ -348,17 +389,16 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
           )}
 
           <input
-            ref={fileInputRef}
+            ref={imageInputRef}
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) => handleNewFiles(e.target.files)}
+            onChange={(e) => handleNewImages(e.target.files)}
             className="hidden"
           />
-          {/* Full-width on mobile so it's an easy tap target */}
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => imageInputRef.current?.click()}
             className="w-full sm:w-auto font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-3 sm:py-2.5 rounded-md hover:border-brick-red hover:text-brick-red transition-colors"
           >
             Add photos
@@ -366,7 +406,98 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
         </div>
       </Section>
 
-      {/* Both action buttons full-width on mobile for easy tapping */}
+      {/* ── Videos ─────────────────────────────────────────────── */}
+      <Section title="Videos">
+        <div className="col-span-2">
+          {existingVideos.length > 0 && (
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
+              {existingVideos.map((url) => (
+                <div
+                  key={url}
+                  className="relative w-32 h-20 sm:w-40 sm:h-24 rounded-md overflow-hidden border border-stone-grey/30 bg-charcoal-roof/5"
+                >
+                  <video
+                    src={url}
+                    className="w-full h-full object-cover"
+                    muted
+                    preload="metadata"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeExistingVideo(url)}
+                    className="absolute top-1 right-1 w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
+                    aria-label="Remove video"
+                  >
+                    ×
+                  </button>
+                  {/* play icon overlay so it's clear it's a video */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-8 h-8 rounded-full bg-charcoal-roof/50 flex items-center justify-center">
+                      <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
+                        <path d="M1 1l10 6-10 6V1z" fill="#F2C94C" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {newVideoFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
+              {newVideoFiles.map((file, i) => (
+                <div
+                  key={i}
+                  className="relative w-32 h-20 sm:w-40 sm:h-24 rounded-md overflow-hidden border border-window-gold/60 bg-charcoal-roof/5"
+                >
+                  <video
+                    src={URL.createObjectURL(file)}
+                    className="w-full h-full object-cover"
+                    muted
+                    preload="metadata"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeNewVideo(i)}
+                    className="absolute top-1 right-1 w-6 h-6 sm:w-5 sm:h-5 rounded-full bg-charcoal-roof/80 text-mist text-xs flex items-center justify-center"
+                    aria-label="Remove video"
+                  >
+                    ×
+                  </button>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-8 h-8 rounded-full bg-charcoal-roof/50 flex items-center justify-center">
+                      <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
+                        <path d="M1 1l10 6-10 6V1z" fill="#F2C94C" />
+                      </svg>
+                    </div>
+                  </div>
+                  <span className="absolute bottom-1 left-2 font-body text-xs text-mist/80 truncate max-w-[80%]">
+                    {file.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*"
+            multiple
+            onChange={(e) => handleNewVideos(e.target.files)}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => videoInputRef.current?.click()}
+            className="w-full sm:w-auto font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-3 sm:py-2.5 rounded-md hover:border-brick-red hover:text-brick-red transition-colors"
+          >
+            Add videos
+          </button>
+        </div>
+      </Section>
+
+      {/* ── Actions ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-3 mt-8">
         <button
           type="submit"

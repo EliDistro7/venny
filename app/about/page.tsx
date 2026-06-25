@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Target, Eye, Heart, ChevronRight } from "lucide-react";
-import { agents } from "../data/properties";
+
 
 export default function AboutPage() {
   return (
@@ -94,51 +94,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Team */}
-      <section className="py-20 px-6" id="agents" style={{ backgroundColor: "#F8F5F0" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-bold tracking-widest uppercase mb-3 font-body" style={{ color: "#A02B2F" }}>
-              The People Behind Venny Construction
-            </p>
-            <h2 className="text-4xl font-bold" style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}>
-              Our Agents
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {agents.map((agent) => (
-              <div
-                key={agent.id}
-                className="rounded-xl overflow-hidden text-center"
-                style={{ backgroundColor: "#FFFFFF", boxShadow: "0 2px 16px rgba(28, 28, 30, 0.08)" }}
-              >
-                <div className="relative h-64">
-                  <Image src={agent.image} alt={agent.name} fill className="object-cover object-top" />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold mb-1" style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}>
-                    {agent.name}
-                  </h3>
-                  <p className="text-sm mb-3 font-body" style={{ color: "#A02B2F" }}>
-                    {agent.role}
-                  </p>
-                  <p className="text-xs font-body mb-4" style={{ color: "#6B6558" }}>
-                    {agent.listings} active listings · {agent.phone}
-                  </p>
-                  <Link
-                    href="/contact"
-                    className="inline-block px-5 py-2 rounded text-xs font-bold font-body"
-                    style={{ backgroundColor: "#A02B2F", color: "#F8F5F0" }}
-                  >
-                    Contact Agent
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+     
 
       {/* CTA */}
       <section className="py-20 px-6 text-center" style={{ backgroundColor: "#FFFFFF" }}>

@@ -44,11 +44,18 @@ export default async function PropertyDetail({
       ? [property.image]
       : [];
 
+  // Resolve video list
+  const videoList = property.videos ?? [];
+
   return (
     <main style={{ backgroundColor: "#F8F5F0" }} className="min-h-screen pt-20">
-      {/* Hero carousel */}
+      {/* Hero carousel — images + videos */}
       <div className="relative">
-        <PropertyImageCarousel images={imageList} title={property.title} />
+        <PropertyImageCarousel
+          images={imageList}
+          videos={videoList}
+          title={property.title}
+        />
 
         {/* Back button — sits above carousel */}
         <Link
@@ -210,7 +217,11 @@ export default async function PropertyDetail({
                     Listing
                   </dt>
                   <dd className="font-bold text-sm font-body" style={{ color: "#1C1C1E" }}>
-                    {isDelivered ? "Completed project" : property.type === "sale" ? "For Sale" : "For Rent"}
+                    {isDelivered
+                      ? "Completed project"
+                      : property.type === "sale"
+                      ? "For Sale"
+                      : "For Rent"}
                   </dd>
                 </div>
                 <div className="flex justify-between">
@@ -252,6 +263,32 @@ export default async function PropertyDetail({
                     {property.area.toLocaleString()} m²
                   </dd>
                 </div>
+
+                {/* Availability badge — only shown when not "available" */}
+                {property.availability && property.availability !== "available" && (
+                  <div className="flex justify-between items-center">
+                    <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
+                      Status
+                    </dt>
+                    <dd>
+                      <span
+                        className="px-2 py-0.5 rounded text-xs font-bold font-body capitalize"
+                        style={{
+                          backgroundColor:
+                            property.availability === "sold" || property.availability === "rented"
+                              ? "rgba(160,43,47,0.1)"
+                              : "rgba(242,201,76,0.2)",
+                          color:
+                            property.availability === "sold" || property.availability === "rented"
+                              ? "#A02B2F"
+                              : "#7A6520",
+                        }}
+                      >
+                        {property.availability}
+                      </span>
+                    </dd>
+                  </div>
+                )}
               </dl>
 
               <div

@@ -6,7 +6,8 @@ import { getProperties, getCities, getCityStats } from "./data/properties";
 
 export default async function Home() {
   const [allFeatured, cities, cityStats] = await Promise.all([
-    getProperties({ featured: true }),
+    // Only show available featured properties in the hero section
+    getProperties({ featured: true, availability: "available" }),
     getCities(),
     getCityStats(),
   ]);

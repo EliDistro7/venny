@@ -8,12 +8,15 @@ export interface AdminProperty {
   location: string;
   city: string;
   price: number;
+  videos?: string[];
   currency: string;
   type: PropertyType;
   category: PropertyCategory;
   bedrooms: number;
   bathrooms: number;
   area: number;
+    availability?: "available" | "sold" | "rented" | "reserved";
+
   status: PropertyStatus;
   images: string[];
   featured: boolean;
@@ -28,6 +31,7 @@ export interface PropertyFormValues {
   location: string;
   city: string;
   price: string;
+  videos?: string[];
   currency: string;
   type: PropertyType;
   category: PropertyCategory;

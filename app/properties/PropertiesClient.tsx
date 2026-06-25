@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import PropertyCard from "../components/PropertyCard";
-import {  propertyTypes, dealTypes } from "../data/properties";
+import { propertyTypes, dealTypes, availabilityTypes } from "../data/properties";
 import { Property } from "../types";
 
 const statusOptions = [
@@ -12,6 +12,14 @@ const statusOptions = [
   { value: "work_in_progress", label: "Work in Progress" },
   { value: "finished", label: "Finished" },
   { value: "delivered", label: "Delivered to Customer" },
+];
+
+const availabilityOptions = [
+  { value: "all", label: "All" },
+  { value: "available", label: "Available" },
+  { value: "reserved", label: "Reserved" },
+  { value: "sold", label: "Sold" },
+  { value: "rented", label: "Rented" },
 ];
 
 export default function PropertiesClient({
@@ -28,6 +36,9 @@ export default function PropertiesClient({
   const [deal, setDeal] = useState(searchParams.get("type") || "All");
   const [showFilters, setShowFilters] = useState(false);
   const [status, setStatus] = useState("all");
+  const [availability, setAvailability] = useState(
+    searchParams.get("availability") || "all"
+  );
 
   const filtered = useMemo(() => {
     if (!Array.isArray(properties)) return [];
@@ -37,16 +48,27 @@ export default function PropertiesClient({
       const categoryMatch = category === "All Types" || p.category === category;
       const dealMatch = deal === "All" || p.type === deal;
       const statusMatch = status === "all" || p.status === status;
-      return cityMatch && categoryMatch && dealMatch && statusMatch;
+      const availMatch =
+        availability === "all" || p.availability === availability;
+      return cityMatch && categoryMatch && dealMatch && statusMatch && availMatch;
     });
-  }, [properties, city, category, deal, status]);
+  }, [properties, city, category, deal, status, availability]);
 
   const resetFilters = () => {
     setCity("All Cities");
     setCategory("All Types");
     setDeal("All");
     setStatus("all");
+    setAvailability("all");
   };
+
+  const activeFilterCount = [
+    city !== "All Cities",
+    category !== "All Types",
+    deal !== "All",
+    status !== "all",
+    availability !== "all",
+  ].filter(Boolean).length;
 
   return (
     <main style={{ backgroundColor: "#F8F5F0" }} className="min-h-screen">
@@ -80,6 +102,14 @@ export default function PropertiesClient({
         >
           <SlidersHorizontal size={16} />
           {showFilters ? "Hide Filters" : "Filters"}
+          {activeFilterCount > 0 && (
+            <span
+              className="ml-1 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
+              style={{ backgroundColor: "#A02B2F", color: "#F8F5F0" }}
+            >
+              {activeFilterCount}
+            </span>
+          )}
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -98,6 +128,14 @@ export default function PropertiesClient({
                   style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
                 >
                   Filters
+                  {activeFilterCount > 0 && (
+                    <span
+                      className="ml-2 text-xs px-2 py-0.5 rounded-full font-body"
+                      style={{ backgroundColor: "rgba(160,43,47,0.1)", color: "#A02B2F" }}
+                    >
+                      {activeFilterCount} active
+                    </span>
+                  )}
                 </h3>
                 <button
                   onClick={resetFilters}
@@ -185,6 +223,33 @@ export default function PropertiesClient({
                 </select>
               </div>
 
+              {/* Availability */}
+              <div className="mb-6">
+                <p
+                  className="text-xs font-bold tracking-wider uppercase mb-3 font-body"
+                  style={{ color: "#6B6558" }}
+                >
+                  Availability
+                </p>
+                <div className="flex flex-col gap-2">
+                  {availabilityOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setAvailability(opt.value)}
+                      className="w-full px-3 py-2 rounded text-xs font-bold font-body text-left transition-colors"
+                      style={{
+                        backgroundColor:
+                          availability === opt.value ? "#A02B2F" : "#F8F5F0",
+                        color:
+                          availability === opt.value ? "#F8F5F0" : "#6B6558",
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Project Status */}
               <div>
                 <p
@@ -227,9 +292,16 @@ export default function PropertiesClient({
                 >
                   No properties match your filters
                 </p>
-                <p className="text-sm font-body" style={{ color: "#6B6558" }}>
+                <p className="text-sm font-body mb-6" style={{ color: "#6B6558" }}>
                   Try adjusting your filters to see more results.
                 </p>
+                <button
+                  onClick={resetFilters}
+                  className="px-6 py-2 rounded text-sm font-bold font-body transition-colors"
+                  style={{ backgroundColor: "#A02B2F", color: "#F8F5F0" }}
+                >
+                  Clear All Filters
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
