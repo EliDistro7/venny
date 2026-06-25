@@ -20,11 +20,25 @@ export default function EditPropertyPage() {
   }, [params.id]);
 
   if (error) {
-    return <p className="font-body text-sm text-brick-red">{error}</p>;
+    return (
+      <div className="rounded-md bg-brick-red/10 border border-brick-red/30 px-4 py-3">
+        <p className="font-body text-sm text-brick-red">{error}</p>
+      </div>
+    );
   }
 
   if (!property) {
-    return <p className="font-body text-sm text-text-soft">Loading…</p>;
+    return (
+      <div className="max-w-3xl space-y-6 animate-pulse">
+        <div>
+          <div className="h-8 w-48 bg-stone-grey/20 rounded mb-2" />
+          <div className="h-4 w-72 bg-stone-grey/10 rounded" />
+        </div>
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-24 w-full bg-stone-grey/10 rounded-md" />
+        ))}
+      </div>
+    );
   }
 
   return (

@@ -1,6 +1,6 @@
 export type PropertyType = "sale" | "rent";
 export type PropertyCategory = "apartment" | "villa" | "house" | "land" | "commercial";
-export type PropertyStatus = "delivered" | "work_in_progress";
+export type PropertyStatus = "delivered" | "finished" | "work_in_progress";
 
 export interface AdminProperty {
   _id: string;
