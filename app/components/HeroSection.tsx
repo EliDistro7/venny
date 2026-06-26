@@ -76,7 +76,7 @@ export default function HeroSection({ cities, content: raw }: HeroSectionProps) 
         </p>
 
         <h1
-          className="text-5xl md:text-7xl font-bold leading-[1.05] mb-6"
+          className="text-3xl md:text-7xl font-bold leading-[1.05] mb-6"
           style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
         >
           {c.headingLine1}
