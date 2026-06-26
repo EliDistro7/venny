@@ -13,7 +13,6 @@ interface PropertyCardProps {
 const statusConfig: Record<string, { label: string; color: string }> = {
   work_in_progress: { label: "Work in Progress", color: "#D9822B" },
   finished:         { label: "Finished",          color: "#2F855A" },
-  // "delivered" intentionally omitted — no badge shown
 };
 
 const categoryLabel: Record<string, string> = {
@@ -41,7 +40,7 @@ function buildMedia(images: string[], videos: string[]): MediaItem[] {
   ];
 }
 
-// ── Thumbnail strip ────────────────────────────────────────────────────────────
+// ── Thumbnail strip ──────────────────────────────────────────────────────────
 
 function MediaStrip({
   media,
@@ -95,7 +94,7 @@ function MediaStrip({
   );
 }
 
-// ── Active media — natural aspect ratio, no crop ───────────────────────────────
+// ── Active media — natural aspect ratio ──────────────────────────────────────
 
 function MediaSlide({
   item,
@@ -113,7 +112,6 @@ function MediaSlide({
         alt={title}
         width={1200}
         height={900}
-        // w-full + h-auto = natural aspect ratio, no fixed-height crop
         className={`w-full h-auto block transition-transform duration-500 group-hover:scale-[1.02] ${
           unavailable ? "brightness-75" : ""
         }`}
@@ -125,17 +123,16 @@ function MediaSlide({
   return (
     <video
       src={item.src}
-      // Same principle — no fixed height, natural aspect ratio
       className="w-full h-auto block"
       controls
       playsInline
       preload="metadata"
-      onClick={(e) => e.preventDefault()} // don't follow card link on video click
+      onClick={(e) => e.preventDefault()}
     />
   );
 }
 
-// ── Fallback when there are no media ──────────────────────────────────────────
+// ── Fallback ─────────────────────────────────────────────────────────────────
 
 function EmptyMedia() {
   return (
@@ -173,16 +170,27 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   }
 
   return (
+    /*
+     * On mobile the <Link> itself bleeds edge-to-edge via negative mx
+     * applied by the *parent grid* (see PropertyCardGrid wrapper below, or
+     * apply -mx-4 sm:-mx-6 on the grid column on mobile).
+     * The card inner div has no border-radius on mobile; md+ gets rounded-xl.
+     */
     <Link href={`/properties/${property.id}`} className="block group w-full">
       <div
-        className="w-full overflow-hidden transition-all duration-300 group-hover:-translate-y-0.5"
+        className={[
+          "w-full overflow-hidden transition-all duration-300",
+          // No radius on mobile; rounded on md+
+          "md:rounded-xl",
+          // Lift only on md+ (touch devices shouldn't translate)
+          "md:group-hover:-translate-y-0.5",
+        ].join(" ")}
         style={{
           backgroundColor: "#FFFFFF",
-          borderRadius: "12px",
           boxShadow: "0 1px 4px rgba(28,28,30,0.06), 0 4px 20px rgba(28,28,30,0.08)",
         }}
       >
-        {/* ── Media — no fixed height, renders at natural aspect ratio ── */}
+        {/* ── Media ── */}
         <div className="relative w-full overflow-hidden">
           {hasMedia ? (
             <MediaSlide item={currentItem} title={property.title} unavailable={!!unavailable} />
@@ -210,7 +218,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </div>
           )}
 
-          {/* Prev / Next — only when multiple items and not currently on a video */}
+          {/* Prev / Next */}
           {media.length > 1 && !isVideo && (
             <>
               <button
@@ -238,7 +246,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap z-10">
             {!isDelivered && (
               <span
-                key="type"
                 className="px-2.5 py-1 rounded text-xs font-bold tracking-wider font-body uppercase"
                 style={{
                   backgroundColor: property.type === "sale" ? "#A02B2F" : "#1C1C1E",
@@ -249,7 +256,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               </span>
             )}
             <span
-              key="category"
               className="px-2.5 py-1 rounded text-xs font-bold tracking-wider font-body"
               style={{ backgroundColor: "rgba(255,255,255,0.92)", color: "#1C1C1E" }}
             >
@@ -257,7 +263,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </span>
             {property.status && statusConfig[property.status] && (
               <span
-                key="status"
                 className="px-2.5 py-1 rounded text-xs font-bold tracking-wider font-body"
                 style={{
                   backgroundColor: statusConfig[property.status].color,
@@ -269,7 +274,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             )}
           </div>
 
-          {/* Top-right badges — featured + video indicator */}
+          {/* Top-right badges */}
           <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
             {property.featured && (
               <span
@@ -290,7 +295,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             )}
           </div>
 
-          {/* Media counter — bottom-right, only when multiple items */}
+          {/* Media counter */}
           {media.length > 1 && (
             <div
               className="absolute bottom-3 right-3 z-20 px-2.5 py-0.5 rounded-full text-xs font-body font-bold"
@@ -301,7 +306,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           )}
         </div>
 
-        {/* ── Thumbnail strip — below media, above text, hidden during video ── */}
+        {/* ── Thumbnail strip ── */}
         {!isVideo && media.length > 1 && (
           <MediaStrip media={media} current={current} onSelect={setCurrent} />
         )}

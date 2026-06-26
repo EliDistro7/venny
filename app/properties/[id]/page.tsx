@@ -296,23 +296,30 @@ export default async function PropertyDetail({
           </div>
         </div>
 
-        {/* Similar properties */}
-        {similar.length > 0 && (
-          <div className="mt-16">
+      </div>
+      {/* ── Similar properties — bleed to edges on mobile, container+padding on md+ ── */}
+      {similar.length > 0 && (
+        <>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-16 mb-6">
             <h2
-              className="text-2xl font-bold mb-8"
+              className="text-2xl font-bold"
               style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
             >
               Similar Properties in {property.city}
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          </div>
+          <div className="max-w-7xl mx-auto pb-16">
+            <div
+              className="grid grid-cols-1 gap-px md:gap-8 md:px-4 sm:md:px-6 md:grid-cols-3"
+              style={{ backgroundColor: "rgba(160,43,47,0.08)" }}
+            >
               {similar.map((p: Property) => (
                 <PropertyCard key={p.id} property={p} />
               ))}
             </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </main>
   );
 }

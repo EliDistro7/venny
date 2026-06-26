@@ -23,51 +23,48 @@ export default async function Home() {
     size: i === 0 ? "md:col-span-2 md:row-span-2" : "",
   }));
 
-  // ── Content with fallbacks ────────────────────────────────────────────────
+  const stats: StatsContent = {
+    items: content.stats?.items?.length
+      ? content.stats.items
+      : [
+          { num: "1,200+", label: "Properties Listed" },
+          { num: "850+",   label: "Happy Clients" },
+          { num: `${displayCities.length}`, label: "Cities Covered" },
+          { num: "15+",    label: "Years Experience" },
+        ],
+  };
 
-const stats: StatsContent = {
-  items: content.stats?.items?.length
-    ? content.stats.items
-    : [
-        { num: "1,200+", label: "Properties Listed" },
-        { num: "850+",   label: "Happy Clients" },
-        { num: `${displayCities.length}`, label: "Cities Covered" },
-        { num: "15+",    label: "Years Experience" },
-      ],
-};
+  const featured_c: FeaturedContent = {
+    eyebrow:      content.featured?.eyebrow      ?? "Handpicked for You",
+    heading:      content.featured?.heading      ?? "Featured Properties",
+    viewAllLabel: content.featured?.viewAllLabel ?? "View All Properties",
+  };
 
-const featured_c: FeaturedContent = {
-  eyebrow:      content.featured?.eyebrow      ?? "Handpicked for You",
-  heading:      content.featured?.heading      ?? "Featured Properties",   // ← missing from DB
-  viewAllLabel: content.featured?.viewAllLabel ?? "View All Properties",
-};
+  const locations_c: LocationsContent = {
+    eyebrow: content.locations?.eyebrow ?? "Explore Tanzania",
+    heading: content.locations?.heading ?? "Properties by Destination",
+  };
 
-const locations_c: LocationsContent = {
-  eyebrow: content.locations?.eyebrow ?? "Explore Tanzania",
-  heading: content.locations?.heading ?? "Properties by Destination",
-};
+  const whyus: WhyUsContent = {
+    eyebrow: content.whyus?.eyebrow ?? "Why Venny Construction",
+    heading: content.whyus?.heading ?? "The Trusted Way to\nBuy & Sell in Tanzania",
+    cards:   content.whyus?.cards?.length
+      ? content.whyus.cards
+      : [
+          { icon: "Shield",     title: "Verified Listings",   desc: "Every property is physically inspected and legally verified before appearing on our platform. No surprises." },
+          { icon: "Users",      title: "Expert Local Agents", desc: "Our bilingual agents (Swahili & English) understand Tanzania's property market better than anyone." },
+          { icon: "TrendingUp", title: "Market Intelligence", desc: "Access real price data, neighbourhood insights, and investment analysis to make confident decisions." },
+        ],
+  };
 
- const whyus: WhyUsContent = {
-  eyebrow: content.whyus?.eyebrow ?? "Why Venny Construction",
-  heading: content.whyus?.heading ?? "The Trusted Way to\nBuy & Sell in Tanzania",
-  cards:   content.whyus?.cards?.length
-    ? content.whyus.cards
-    : [
-        { icon: "Shield",     title: "Verified Listings",   desc: "Every property is physically inspected and legally verified before appearing on our platform. No surprises." },
-        { icon: "Users",      title: "Expert Local Agents", desc: "Our bilingual agents (Swahili & English) understand Tanzania's property market better than anyone." },
-        { icon: "TrendingUp", title: "Market Intelligence", desc: "Access real price data, neighbourhood insights, and investment analysis to make confident decisions." },
-      ],
-};
-
-// Replace the cta block:
-const cta: CtaContent = {
-  eyebrow:         content.cta?.eyebrow         ?? "Own Property in Tanzania?",
-  heading:         content.cta?.heading         ?? "List With Venny\n& Reach Thousands",
-  subheading:      content.cta?.subheading      ?? "Connect with verified buyers and renters across Tanzania and the diaspora. Free listing for first 30 days.",
-  buttonLabel:     content.cta?.buttonLabel     ?? "List Your Property Free",
-  buttonHref:      content.cta?.buttonHref      ?? "/contact",   // ← was undefined
-  backgroundImage: content.cta?.backgroundImage ?? "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1400&q=80",
-};
+  const cta: CtaContent = {
+    eyebrow:         content.cta?.eyebrow         ?? "Own Property in Tanzania?",
+    heading:         content.cta?.heading         ?? "List With Venny\n& Reach Thousands",
+    subheading:      content.cta?.subheading      ?? "Connect with verified buyers and renters across Tanzania and the diaspora. Free listing for first 30 days.",
+    buttonLabel:     content.cta?.buttonLabel     ?? "List Your Property Free",
+    buttonHref:      content.cta?.buttonHref      ?? "/contact",
+    backgroundImage: content.cta?.backgroundImage ?? "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1400&q=80",
+  };
 
   const ICON_MAP = { Shield, Users, TrendingUp };
 
@@ -99,8 +96,8 @@ const cta: CtaContent = {
 
       {/* ─── FEATURED PROPERTIES ─── */}
       {featured.length > 0 && (
-        <section className="py-20 px-6" style={{ backgroundColor: "#F8F5F0" }}>
-          <div className="max-w-7xl mx-auto">
+        <section className="py-20" style={{ backgroundColor: "#F8F5F0" }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
               <div>
                 <p
@@ -124,15 +121,28 @@ const cta: CtaContent = {
                 {featured_c.viewAllLabel} <ChevronRight size={16} />
               </Link>
             </div>
+          </div>
 
+          {/*
+           * On mobile: the grid has no side padding, cards bleed to screen edge.
+           * On md+: restored to the standard max-w container with padding and gap.
+           */}
+          <div className="max-w-7xl mx-auto">
             <div
-              className={`grid gap-8 grid-cols-1 ${
+              className={[
+                "grid",
+                // Mobile: single column, no gap (cards stack with a divider-like border)
+                "grid-cols-1 gap-px md:gap-8",
+                // Restore side padding only on md+; mobile bleeds full width
+                "md:px-6",
                 featured.length === 1
-                  ? "md:grid-cols-1 max-w-md mx-auto"
+                  ? "md:grid-cols-1 md:max-w-md md:mx-auto"
                   : featured.length === 2
-                  ? "md:grid-cols-2 max-w-3xl mx-auto"
-                  : "md:grid-cols-3"
-              }`}
+                  ? "md:grid-cols-2 md:max-w-3xl md:mx-auto"
+                  : "md:grid-cols-3",
+              ].join(" ")}
+              // Thin separator between stacked cards on mobile comes from gap-px + bg
+              style={{ backgroundColor: "rgba(160,43,47,0.08)" }}
             >
               {featured.map((p) => (
                 <PropertyCard key={p.id} property={p} />
