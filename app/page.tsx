@@ -36,26 +36,28 @@ const stats: StatsContent = {
       ],
 };
 
-  const featured_c: FeaturedContent = content.featured ?? {
-    eyebrow: "Handpicked for You",
-    heading: "Featured Properties",
-    viewAllLabel: "View All Properties",
-  };
+const featured_c: FeaturedContent = {
+  eyebrow:      content.featured?.eyebrow      ?? "Handpicked for You",
+  heading:      content.featured?.heading      ?? "Featured Properties",   // ← missing from DB
+  viewAllLabel: content.featured?.viewAllLabel ?? "View All Properties",
+};
 
-  const locations_c: LocationsContent = content.locations ?? {
-    eyebrow: "Explore Tanzania",
-    heading: "Properties by Destination",
-  };
+const locations_c: LocationsContent = {
+  eyebrow: content.locations?.eyebrow ?? "Explore Tanzania",
+  heading: content.locations?.heading ?? "Properties by Destination",
+};
 
-  const whyus: WhyUsContent = content.whyus ?? {
-    eyebrow: "Why Venny Construction",
-    heading: "The Trusted Way to\nBuy & Sell in Tanzania",
-    cards: [
-      { icon: "Shield",     title: "Verified Listings",   desc: "Every property is physically inspected and legally verified before appearing on our platform. No surprises." },
-      { icon: "Users",      title: "Expert Local Agents", desc: "Our bilingual agents (Swahili & English) understand Tanzania's property market better than anyone." },
-      { icon: "TrendingUp", title: "Market Intelligence", desc: "Access real price data, neighbourhood insights, and investment analysis to make confident decisions." },
-    ],
-  };
+ const whyus: WhyUsContent = {
+  eyebrow: content.whyus?.eyebrow ?? "Why Venny Construction",
+  heading: content.whyus?.heading ?? "The Trusted Way to\nBuy & Sell in Tanzania",
+  cards:   content.whyus?.cards?.length
+    ? content.whyus.cards
+    : [
+        { icon: "Shield",     title: "Verified Listings",   desc: "Every property is physically inspected and legally verified before appearing on our platform. No surprises." },
+        { icon: "Users",      title: "Expert Local Agents", desc: "Our bilingual agents (Swahili & English) understand Tanzania's property market better than anyone." },
+        { icon: "TrendingUp", title: "Market Intelligence", desc: "Access real price data, neighbourhood insights, and investment analysis to make confident decisions." },
+      ],
+};
 
 // Replace the cta block:
 const cta: CtaContent = {
