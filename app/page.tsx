@@ -1,15 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Search, MapPin, TrendingUp, Shield, Users, ChevronRight } from "lucide-react";
+import { TrendingUp, Shield, Users, ChevronRight } from "lucide-react";
 import PropertyCard from "./components/PropertyCard";
+import HeroSection from "./components/HeroSection";
 import { getProperties, getCities, getCityStats } from "./data/properties";
+import { getAllContent } from "@/lib/content";
+import type { WhyUsContent, CtaContent, FeaturedContent, LocationsContent, StatsContent } from "@/lib/content";
 
 export default async function Home() {
-  const [allFeatured, cities, cityStats] = await Promise.all([
-    // Only show available featured properties in the hero section
+  const [allFeatured, cities, cityStats, content] = await Promise.all([
     getProperties({ featured: true, availability: "available" }),
     getCities(),
     getCityStats(),
+    getAllContent(),
   ]);
 
   const featured = allFeatured.slice(0, 3);
@@ -20,136 +23,59 @@ export default async function Home() {
     size: i === 0 ? "md:col-span-2 md:row-span-2" : "",
   }));
 
+  // ── Content with fallbacks ────────────────────────────────────────────────
+
+  const stats: StatsContent = content.stats ?? {
+    items: [
+      { num: "1,200+", label: "Properties Listed" },
+      { num: "850+",   label: "Happy Clients" },
+      { num: `${displayCities.length}`, label: "Cities Covered" },
+      { num: "15+",    label: "Years Experience" },
+    ],
+  };
+
+  const featured_c: FeaturedContent = content.featured ?? {
+    eyebrow: "Handpicked for You",
+    heading: "Featured Properties",
+    viewAllLabel: "View All Properties",
+  };
+
+  const locations_c: LocationsContent = content.locations ?? {
+    eyebrow: "Explore Tanzania",
+    heading: "Properties by Destination",
+  };
+
+  const whyus: WhyUsContent = content.whyus ?? {
+    eyebrow: "Why Venny Construction",
+    heading: "The Trusted Way to\nBuy & Sell in Tanzania",
+    cards: [
+      { icon: "Shield",     title: "Verified Listings",   desc: "Every property is physically inspected and legally verified before appearing on our platform. No surprises." },
+      { icon: "Users",      title: "Expert Local Agents", desc: "Our bilingual agents (Swahili & English) understand Tanzania's property market better than anyone." },
+      { icon: "TrendingUp", title: "Market Intelligence", desc: "Access real price data, neighbourhood insights, and investment analysis to make confident decisions." },
+    ],
+  };
+
+  const cta: CtaContent = content.cta ?? {
+    eyebrow: "Own Property in Tanzania?",
+    heading: "List With Venny\n& Reach Thousands",
+    subheading: "Connect with verified buyers and renters across Tanzania and the diaspora. Free listing for first 30 days.",
+    buttonLabel: "List Your Property Free",
+    buttonHref: "/contact",
+    backgroundImage: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1400&q=80",
+  };
+
+  const ICON_MAP = { Shield, Users, TrendingUp };
+
   return (
     <main>
       {/* ─── HERO ─── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/featured/f7.jpeg"
-            alt="Dar es Salaam skyline"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(160deg, rgba(28,28,30,0.88) 0%, rgba(28,28,30,0.55) 60%, rgba(0,0,0,0.4) 100%)",
-            }}
-          />
-        </div>
-
-        <div className="absolute top-32 right-8 md:right-16 text-right z-10 hidden md:block">
-          <p
-            style={{ color: "rgba(160, 43, 47, 0.4)", fontFamily: "Georgia, serif" }}
-            className="text-6xl font-bold leading-none select-none"
-          >
-            Nyumba
-          </p>
-          <p
-            style={{ color: "rgba(160, 43, 47, 0.2)", fontFamily: "Georgia, serif" }}
-            className="text-3xl font-light select-none mt-1"
-          >
-            Bora
-          </p>
-        </div>
-
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center pt-24">
-          <p
-            className="text-sm font-bold tracking-widest uppercase mb-6 font-body"
-            style={{ color: "#F2C94C" }}
-          >
-            Venny Construction &amp; Real Estate Co. Ltd.
-          </p>
-          <h1
-            className="text-5xl md:text-7xl font-bold leading-[1.05] mb-6"
-            style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
-          >
-            Maisha Ni
-            <br />
-            <span style={{ color: "#F2C94C" }}>Nyumba Bora</span>
-            <br />
-            in Tanzania
-          </h1>
-          <p
-            className="text-lg md:text-xl mb-10 max-w-2xl mx-auto font-body leading-relaxed"
-            style={{ color: "rgba(248, 245, 240, 0.75)" }}
-          >
-            From oceanfront villas in Zanzibar to city apartments in Dar es
-            Salaam — discover exceptional properties built and trusted by Venny
-            Construction &amp; Real Estate.
-          </p>
-
-          <div
-            className="flex flex-col md:flex-row gap-0 rounded-xl overflow-hidden max-w-2xl mx-auto mb-10"
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-            }}
-          >
-            <div className="flex items-center gap-3 flex-1 px-5 py-4">
-              <MapPin size={18} style={{ color: "#A02B2F", flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Search by city or neighbourhood..."
-                className="flex-1 outline-none bg-transparent font-body text-sm"
-                style={{ color: "#1C1C1E" }}
-              />
-            </div>
-            <Link
-              href="/properties"
-              className="flex items-center justify-center gap-2 px-8 py-4 font-bold text-sm font-body transition-all"
-              style={{
-                background: "linear-gradient(135deg, #A02B2F, #7E2125)",
-                color: "#F8F5F0",
-              }}
-            >
-              <Search size={16} />
-              Search
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3">
-            {displayCities.map((city) => (
-              <Link
-                key={city}
-                href={`/properties?city=${encodeURIComponent(city)}`}
-                className="px-4 py-2 rounded-full text-sm font-body transition-all"
-                style={{
-                  backgroundColor: "rgba(160, 43, 47, 0.18)",
-                  color: "#F2C94C",
-                  border: "1px solid rgba(242, 201, 76, 0.3)",
-                }}
-              >
-                {city}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10">
-          <div
-            className="w-px h-12 animate-pulse"
-            style={{ backgroundColor: "rgba(242, 201, 76, 0.5)" }}
-          />
-          <p className="text-xs font-body tracking-widest" style={{ color: "rgba(242,201,76,0.6)" }}>
-            SCROLL
-          </p>
-        </div>
-      </section>
+      <HeroSection cities={displayCities} content={content.hero ?? {}} />
 
       {/* ─── STATS BAR ─── */}
       <section style={{ backgroundColor: "#1C1C1E" }} className="py-10">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { num: "1,200+", label: "Properties Listed" },
-              { num: "850+", label: "Happy Clients" },
-              { num: `${displayCities.length}`, label: "Cities Covered" },
-              { num: "15+", label: "Years Experience" },
-            ].map((stat) => (
+            {stats.items.map((stat) => (
               <div key={stat.label}>
                 <p
                   className="text-3xl font-bold mb-1"
@@ -176,13 +102,13 @@ export default async function Home() {
                   className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
                   style={{ color: "#A02B2F" }}
                 >
-                  Handpicked for You
+                  {featured_c.eyebrow}
                 </p>
                 <h2
                   className="text-4xl font-bold"
                   style={{ color: "#1C1C1E", fontFamily: "Georgia, serif" }}
                 >
-                  Featured Properties
+                  {featured_c.heading}
                 </h2>
               </div>
               <Link
@@ -190,7 +116,7 @@ export default async function Home() {
                 className="flex items-center gap-2 mt-4 md:mt-0 text-sm font-body font-bold link-underline"
                 style={{ color: "#A02B2F" }}
               >
-                View All Properties <ChevronRight size={16} />
+                {featured_c.viewAllLabel} <ChevronRight size={16} />
               </Link>
             </div>
 
@@ -220,13 +146,13 @@ export default async function Home() {
                 className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
                 style={{ color: "#F2C94C" }}
               >
-                Explore Tanzania
+                {locations_c.eyebrow}
               </p>
               <h2
                 className="text-4xl font-bold"
                 style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
               >
-                Properties by Destination
+                {locations_c.heading}
               </h2>
             </div>
 
@@ -281,64 +207,49 @@ export default async function Home() {
               className="text-xs font-bold tracking-widest uppercase mb-3 font-body"
               style={{ color: "#F2C94C" }}
             >
-              Why Venny Construction
+              {whyus.eyebrow}
             </p>
             <h2
-              className="text-4xl font-bold"
+              className="text-4xl font-bold whitespace-pre-line"
               style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
             >
-              The Trusted Way to
-              <br />
-              Buy &amp; Sell in Tanzania
+              {whyus.heading}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                Icon: Shield,
-                title: "Verified Listings",
-                desc: "Every property is physically inspected and legally verified before appearing on our platform. No surprises.",
-              },
-              {
-                Icon: Users,
-                title: "Expert Local Agents",
-                desc: "Our bilingual agents (Swahili & English) understand Tanzania's property market better than anyone.",
-              },
-              {
-                Icon: TrendingUp,
-                title: "Market Intelligence",
-                desc: "Access real price data, neighbourhood insights, and investment analysis to make confident decisions.",
-              },
-            ].map(({ Icon, title, desc }) => (
-              <div
-                key={title}
-                className="rounded-xl p-8"
-                style={{
-                  backgroundColor: "rgba(248, 245, 240, 0.05)",
-                  border: "1px solid rgba(242, 201, 76, 0.15)",
-                }}
-              >
+            {whyus.cards.map(({ icon, title, desc }) => {
+              const Icon = ICON_MAP[icon] ?? Shield;
+              return (
                 <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-5"
-                  style={{ backgroundColor: "rgba(160, 43, 47, 0.2)" }}
+                  key={title}
+                  className="rounded-xl p-8"
+                  style={{
+                    backgroundColor: "rgba(248, 245, 240, 0.05)",
+                    border: "1px solid rgba(242, 201, 76, 0.15)",
+                  }}
                 >
-                  <Icon size={22} style={{ color: "#F2C94C" }} />
+                  <div
+                    className="w-12 h-12 rounded-lg flex items-center justify-center mb-5"
+                    style={{ backgroundColor: "rgba(160, 43, 47, 0.2)" }}
+                  >
+                    <Icon size={22} style={{ color: "#F2C94C" }} />
+                  </div>
+                  <h3
+                    className="text-xl font-bold mb-3"
+                    style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
+                  >
+                    {title}
+                  </h3>
+                  <p
+                    className="text-sm leading-relaxed font-body"
+                    style={{ color: "rgba(248, 245, 240, 0.6)" }}
+                  >
+                    {desc}
+                  </p>
                 </div>
-                <h3
-                  className="text-xl font-bold mb-3"
-                  style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
-                >
-                  {title}
-                </h3>
-                <p
-                  className="text-sm leading-relaxed font-body"
-                  style={{ color: "rgba(248, 245, 240, 0.6)" }}
-                >
-                  {desc}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -347,7 +258,7 @@ export default async function Home() {
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1400&q=80"
+            src={cta.backgroundImage}
             alt="List your property"
             fill
             className="object-cover"
@@ -365,32 +276,29 @@ export default async function Home() {
             className="text-xs font-bold tracking-widest uppercase mb-4 font-body"
             style={{ color: "#F2C94C" }}
           >
-            Own Property in Tanzania?
+            {cta.eyebrow}
           </p>
           <h2
-            className="text-4xl md:text-5xl font-bold mb-6"
+            className="text-4xl md:text-5xl font-bold mb-6 whitespace-pre-line"
             style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
           >
-            List With Venny
-            <br />
-            &amp; Reach Thousands
+            {cta.heading}
           </h2>
           <p
             className="text-lg mb-10 font-body"
             style={{ color: "rgba(248, 245, 240, 0.7)" }}
           >
-            Connect with verified buyers and renters across Tanzania and the
-            diaspora. Free listing for first 30 days.
+            {cta.subheading}
           </p>
           <Link
-            href="/contact"
+            href={cta.buttonHref}
             className="inline-flex items-center gap-2 px-10 py-4 rounded text-base font-bold font-body transition-all hover:scale-105"
             style={{
               background: "linear-gradient(135deg, #A02B2F, #7E2125)",
               color: "#F8F5F0",
             }}
           >
-            List Your Property Free
+            {cta.buttonLabel}
             <ChevronRight size={18} />
           </Link>
         </div>
