@@ -5,7 +5,20 @@ import Link from "next/link";
 import { AdminProperty } from "@/types/admin";
 import { fetchProperties } from "@/lib/adminApi";
 import PropertyTable from "@/components/admin/PropertyTable";
-import StatCard from "@/components/admin/StatCard";
+
+function StatBlock({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex flex-col gap-1 py-6 border-r border-stone-grey/20 last:border-r-0 px-6 first:pl-0">
+      <span className="font-display text-5xl text-charcoal-roof leading-none">{value}</span>
+      <span
+        className="font-body text-[10px] uppercase text-text-soft/60"
+        style={{ letterSpacing: "0.12em" }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const [properties, setProperties] = useState<AdminProperty[] | null>(null);
@@ -22,45 +35,67 @@ export default function DashboardPage() {
   }
 
   return (
-    <div>
-      {/* Stack on mobile, side-by-side from sm up */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="font-display text-2xl sm:text-3xl text-charcoal-roof">Properties</h1>
-          <p className="font-body text-sm text-text-soft mt-1">
-            Manage every listing shown on the public site.
-          </p>
+    <div className="min-h-screen bg-mist">
+
+      {/* ── Page header ── */}
+      <div className="bg-charcoal-roof">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-end justify-between gap-4">
+          <div>
+            <p
+              className="font-body text-[10px] uppercase text-stone-grey/60 mb-1"
+              style={{ letterSpacing: "0.15em" }}
+            >
+              Admin
+            </p>
+            <h1 className="font-display text-3xl sm:text-4xl text-white leading-tight">
+              Properties
+            </h1>
+          </div>
+          <Link
+            href="/admin/dashboard/new"
+            className="font-body text-xs uppercase text-white border border-white/30 px-5 py-2.5 hover:bg-white hover:text-charcoal-roof transition-colors shrink-0"
+            style={{ letterSpacing: "0.1em" }}
+          >
+            Add property
+          </Link>
         </div>
-        {/* Full-width tap target on mobile */}
-        <Link
-          href="/admin/dashboard/new"
-          className="w-full sm:w-auto text-center font-body text-sm bg-brick-red text-white px-5 py-3 sm:py-2.5 rounded-md hover:bg-brick-red-dark transition-colors shrink-0"
-        >
-          Add property
-        </Link>
       </div>
 
-      {properties && (
-        // 2-up on mobile, 4-up from sm up
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
-          <StatCard label="Total listings" value={properties.length} />
-          <StatCard label="For sale" value={properties.filter((p) => p.type === "sale").length} />
-          <StatCard label="For rent" value={properties.filter((p) => p.type === "rent").length} />
-          <StatCard label="Featured" value={properties.filter((p) => p.featured).length} accent />
-        </div>
-      )}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
 
-      {error && (
-        <div className="bg-brick-red/10 border border-brick-red/30 text-brick-red font-body text-sm rounded-md px-4 py-3 mb-6">
-          {error}
-        </div>
-      )}
+        {/* ── Stats row ── */}
+        {properties && (
+          <div className="flex flex-wrap border-b border-stone-grey/25">
+            <StatBlock label="Total listings" value={properties.length} />
+            <StatBlock label="For sale"       value={properties.filter((p) => p.type === "sale").length} />
+            <StatBlock label="For rent"       value={properties.filter((p) => p.type === "rent").length} />
+            <StatBlock label="Featured"       value={properties.filter((p) => p.featured).length} />
+          </div>
+        )}
 
-      {properties ? (
-        <PropertyTable properties={properties} onDeleted={handleDeleted} />
-      ) : (
-        !error && <p className="font-body text-sm text-text-soft">Loading…</p>
-      )}
+        {/* ── Error ── */}
+        {error && (
+          <p className="font-body text-sm text-brick-red py-6 border-b border-stone-grey/25">
+            {error}
+          </p>
+        )}
+
+        {/* ── Table ── */}
+        <div className="py-8">
+          {properties ? (
+            <PropertyTable properties={properties} onDeleted={handleDeleted} />
+          ) : (
+            !error && (
+              <p
+                className="font-body text-[10px] uppercase text-text-soft/50 py-6"
+                style={{ letterSpacing: "0.1em" }}
+              >
+                Loading…
+              </p>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 }
