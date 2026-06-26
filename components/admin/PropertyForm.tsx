@@ -24,10 +24,24 @@ const CATEGORIES: PropertyCategory[] = ["apartment", "villa", "house", "land", "
 
 type AvailabilityType = "available" | "sold" | "rented" | "reserved";
 
+// Pair a File with its base64 preview so thumbnails render
+// immediately on pick — no waiting for a re-render to flush.
+interface StagedFile {
+  file: File;
+  preview: string; // base64 data URL
+}
+
+function readAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function PropertyForm({ mode, property }: PropertyFormProps) {
   const router = useRouter();
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState(property?.title || "");
   const [location, setLocation] = useState(property?.location || "");
@@ -50,17 +64,22 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   // Images
   const [existingImages, setExistingImages] = useState(property?.images || []);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
-  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+  const [newImages, setNewImages] = useState<StagedFile[]>([]);
 
   // Videos
   const [existingVideos, setExistingVideos] = useState<string[]>(property?.videos || []);
   const [removedVideos, setRemovedVideos] = useState<string[]>([]);
-  const [newVideoFiles, setNewVideoFiles] = useState<File[]>([]);
+  const [newVideos, setNewVideos] = useState<StagedFile[]>([]);
 
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [progressLabel, setProgressLabel] = useState("Uploading files…");
+
+  // Stable IDs for the hidden file inputs — never change so label clicking
+  // always works regardless of re-renders
+  const imageInputId = useRef(`img-input-${Math.random().toString(36).slice(2)}`);
+  const videoInputId = useRef(`vid-input-${Math.random().toString(36).slice(2)}`);
 
   const filteredCities = CITIES.filter((c) =>
     c.toLowerCase().includes(cityInput.toLowerCase())
@@ -71,8 +90,19 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   }
 
   // ── Image handlers ──────────────────────────────────────────────
+  async function handleImagePick(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const staged = await Promise.all(
+      Array.from(files).map(async (file) => ({
+        file,
+        preview: await readAsDataURL(file),
+      }))
+    );
+    setNewImages((prev) => [...prev, ...staged]);
+  }
+
   function removeNewImage(index: number) {
-    setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewImages((prev) => prev.filter((_, i) => i !== index));
   }
   function removeExistingImage(url: string) {
     setExistingImages((prev) => prev.filter((u) => u !== url));
@@ -80,8 +110,19 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
   }
 
   // ── Video handlers ───────────────────────────────────────────────
+  async function handleVideoPick(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const staged = await Promise.all(
+      Array.from(files).map(async (file) => ({
+        file,
+        preview: await readAsDataURL(file),
+      }))
+    );
+    setNewVideos((prev) => [...prev, ...staged]);
+  }
+
   function removeNewVideo(index: number) {
-    setNewVideoFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewVideos((prev) => prev.filter((_, i) => i !== index));
   }
   function removeExistingVideo(url: string) {
     setExistingVideos((prev) => prev.filter((u) => u !== url));
@@ -101,18 +142,22 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
     setUploadProgress(0);
 
     try {
-      const imageRequests = newImageFiles.map((f) => ({ name: f.name, type: f.type, category: "image" as const }));
-      const videoRequests = newVideoFiles.map((f) => ({ name: f.name, type: f.type, category: "video" as const }));
-      const allRequests = [...imageRequests, ...videoRequests];
-      const allFiles = [...newImageFiles, ...newVideoFiles];
+      const imageFiles = newImages.map((s) => s.file);
+      const videoFiles = newVideos.map((s) => s.file);
+      const allFiles = [...imageFiles, ...videoFiles];
 
       let uploadedImageUrls: string[] = [];
       let uploadedVideoUrls: string[] = [];
 
       if (allFiles.length > 0) {
         setProgressLabel("Preparing upload…");
-        const presigned = await getPresignedUrls(allRequests);
 
+        const allRequests = [
+          ...imageFiles.map((f) => ({ name: f.name, type: f.type, category: "image" as const })),
+          ...videoFiles.map((f) => ({ name: f.name, type: f.type, category: "video" as const })),
+        ];
+
+        const presigned = await getPresignedUrls(allRequests);
         const totalSize = allFiles.reduce((s, f) => s + f.size, 0);
         let bytesUploaded = 0;
 
@@ -133,8 +178,8 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
           bytesUploaded += file.size;
         }
 
-        uploadedImageUrls = presigned.slice(0, newImageFiles.length).map((r) => r.publicUrl);
-        uploadedVideoUrls = presigned.slice(newImageFiles.length).map((r) => r.publicUrl);
+        uploadedImageUrls = presigned.slice(0, imageFiles.length).map((r) => r.publicUrl);
+        uploadedVideoUrls = presigned.slice(imageFiles.length).map((r) => r.publicUrl);
       }
 
       setProgressLabel("Saving listing…");
@@ -170,6 +215,10 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
       setUploadProgress(100);
       setProgressLabel("Done!");
       await new Promise((r) => setTimeout(r, 400));
+
+      // router.refresh() clears the Next.js client cache so the dashboard
+      // reflects the new property, then push navigates there.
+      router.refresh();
       router.push("/admin/dashboard");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save this listing");
@@ -181,32 +230,28 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
 
   return (
     <>
-      {/* ── Hidden file inputs — outside <form> to avoid browser submit interference ── */}
+      {/* ── Hidden file inputs outside <form> ───────────────────────
+          Triggered via <label htmlFor> — no .click() calls, no refs,
+          no synthetic event chain. Browser opens picker natively.    */}
       <input
-        ref={imageInputRef}
+        id={imageInputId.current}
         type="file"
         accept="image/*"
         multiple
-        tabIndex={-1}
-        aria-hidden="true"
         className="hidden"
         onChange={(e) => {
-          if (!e.target.files || e.target.files.length === 0) return;
-          setNewImageFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+          handleImagePick(e.target.files);
           e.target.value = "";
         }}
       />
       <input
-        ref={videoInputRef}
+        id={videoInputId.current}
         type="file"
         accept="video/*"
         multiple
-        tabIndex={-1}
-        aria-hidden="true"
         className="hidden"
         onChange={(e) => {
-          if (!e.target.files || e.target.files.length === 0) return;
-          setNewVideoFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+          handleVideoPick(e.target.files);
           e.target.value = "";
         }}
       />
@@ -423,15 +468,15 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
               </div>
             )}
 
-            {newImageFiles.length > 0 && (
+            {newImages.length > 0 && (
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
-                {newImageFiles.map((file, i) => (
+                {newImages.map((staged, i) => (
                   <div
                     key={i}
                     className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-md overflow-hidden border border-window-gold/60"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                    <img src={staged.preview} alt="" className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => removeNewImage(i)}
@@ -445,13 +490,13 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => imageInputRef.current?.click()}
-              className="w-full sm:w-auto font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-3 sm:py-2.5 rounded-md hover:border-brick-red hover:text-brick-red transition-colors"
+            {/* label triggers the file input natively — always works */}
+            <label
+              htmlFor={imageInputId.current}
+              className="inline-block w-full sm:w-auto font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-3 sm:py-2.5 rounded-md hover:border-brick-red hover:text-brick-red transition-colors cursor-pointer text-center"
             >
               Add photos
-            </button>
+            </label>
           </div>
         </Section>
 
@@ -486,15 +531,17 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
               </div>
             )}
 
-            {newVideoFiles.length > 0 && (
+            {newVideos.length > 0 && (
               <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
-                {newVideoFiles.map((file, i) => (
+                {newVideos.map((staged, i) => (
                   <div
                     key={i}
                     className="relative w-32 h-20 sm:w-40 sm:h-24 rounded-md overflow-hidden border border-window-gold/60 bg-charcoal-roof/5"
                   >
+                    {/* Video preview via base64 — renders immediately without
+                        waiting for a re-render to flush object URLs */}
                     <video
-                      src={URL.createObjectURL(file)}
+                      src={staged.preview}
                       className="w-full h-full object-cover"
                       muted
                       preload="metadata"
@@ -515,20 +562,19 @@ export default function PropertyForm({ mode, property }: PropertyFormProps) {
                       </div>
                     </div>
                     <span className="absolute bottom-1 left-2 font-body text-xs text-mist/80 truncate max-w-[80%]">
-                      {file.name}
+                      {staged.file.name}
                     </span>
                   </div>
                 ))}
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => videoInputRef.current?.click()}
-              className="w-full sm:w-auto font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-3 sm:py-2.5 rounded-md hover:border-brick-red hover:text-brick-red transition-colors"
+            <label
+              htmlFor={videoInputId.current}
+              className="inline-block w-full sm:w-auto font-body text-sm border border-stone-grey/40 text-text-soft px-4 py-3 sm:py-2.5 rounded-md hover:border-brick-red hover:text-brick-red transition-colors cursor-pointer text-center"
             >
               Add videos
-            </button>
+            </label>
           </div>
         </Section>
 
