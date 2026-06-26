@@ -109,20 +109,20 @@ export function uploadToR2Direct(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", presignedUrl);
-    xhr.setRequestHeader("Content-Type", file.type);
+    // Do NOT set Content-Type — it must match what was signed.
+    // Since we no longer lock ContentType in the signature, omit it entirely.
 
-    // ✅ Real bytes-sent progress — works because it's a direct PUT, no middleware buffering
     xhr.upload.addEventListener("progress", (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     });
 
     xhr.addEventListener("load", () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new ApiError(`R2 upload failed: ${xhr.status}`, xhr.status));
+      else reject(new ApiError(`R2 upload failed (${xhr.status})`, xhr.status));
     });
     xhr.addEventListener("error", () => reject(new ApiError("Network error during upload", 0)));
     xhr.addEventListener("timeout", () => reject(new ApiError("Upload timed out", 0)));
-    xhr.timeout = 10 * 60 * 1000; // 10 min
+    xhr.timeout = 10 * 60 * 1000;
     xhr.send(file);
   });
 }

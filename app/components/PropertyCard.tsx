@@ -13,7 +13,7 @@ interface PropertyCardProps {
 const statusConfig: Record<string, { label: string; color: string }> = {
   work_in_progress: { label: "Work in Progress", color: "#D9822B" },
   finished: { label: "Finished", color: "#2F855A" },
-  delivered: { label: "Delivered to Customer", color: "#4A5568" },
+//  delivered: { label: "Delivered to Customer", color: "#4A5568" },
 };
 
 const categoryLabel: Record<string, string> = {
