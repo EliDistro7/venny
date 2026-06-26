@@ -9,7 +9,7 @@ import type { WhyUsContent, CtaContent, FeaturedContent, LocationsContent, Stats
 
 export default async function Home() {
   const [allFeatured, cities, cityStats, content] = await Promise.all([
-    getProperties({ featured: true, availability: "available" }),
+    getProperties({ featured: true }),
     getCities(),
     getCityStats(),
     getAllContent(),

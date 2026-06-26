@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -36,7 +35,6 @@ export default async function PropertyDetail({
 
   const isDelivered = property.status === "delivered";
 
-  // Resolve image list — use images[] if present, fall back to single image
   const imageList =
     property.images && property.images.length > 0
       ? property.images
@@ -44,31 +42,35 @@ export default async function PropertyDetail({
       ? [property.image]
       : [];
 
-  // Resolve video list
   const videoList = property.videos ?? [];
 
   return (
     <main style={{ backgroundColor: "#F8F5F0" }} className="min-h-screen pt-20">
-      {/* Hero carousel — images + videos */}
-      <div className="relative">
+
+      {/* ── Hero section ──────────────────────────────────────────── */}
+      <div style={{ backgroundColor: "#1C1C1E" }}>
+
+        {/* Back button — above carousel, full width dark bar */}
+        <div className="flex items-center px-4 py-3">
+          <Link
+            href="/properties"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded font-body text-sm font-bold transition-opacity hover:opacity-80"
+            style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "#F8F5F0" }}
+          >
+            <ChevronLeft size={15} />
+            Back to listings
+          </Link>
+        </div>
+
+        {/* Carousel — natural size, no fixed height */}
         <PropertyImageCarousel
           images={imageList}
           videos={videoList}
           title={property.title}
         />
 
-        {/* Back button — sits above carousel */}
-        <Link
-          href="/properties"
-          className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 rounded font-body text-sm font-bold z-30"
-          style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#1C1C1E" }}
-        >
-          <ChevronLeft size={16} />
-          Back to listings
-        </Link>
-
-        {/* Title/location overlay */}
-        <div className="absolute bottom-6 left-6 right-6 z-20">
+        {/* Title / location — below the media, same dark background */}
+        <div className="px-4 md:px-8 pt-5 pb-6">
           {!isDelivered && (
             <span
               className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body uppercase inline-block mb-3"
@@ -81,24 +83,26 @@ export default async function PropertyDetail({
             </span>
           )}
           <h1
-            className="text-3xl md:text-5xl font-bold mb-2"
+            className="text-2xl sm:text-3xl md:text-5xl font-bold mb-2 leading-tight"
             style={{ color: "#F8F5F0", fontFamily: "Georgia, serif" }}
           >
             {property.title}
           </h1>
           <div className="flex items-center gap-1">
-            <MapPin size={16} style={{ color: "#F2C94C" }} />
-            <span className="font-body" style={{ color: "rgba(248,245,240,0.9)" }}>
+            <MapPin size={15} style={{ color: "#F2C94C", flexShrink: 0 }} />
+            <span className="font-body text-sm" style={{ color: "rgba(248,245,240,0.85)" }}>
               {property.location}
             </span>
           </div>
         </div>
       </div>
+      {/* ── /Hero section ─────────────────────────────────────────── */}
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-12">
+
         {/* Caption banner */}
         <div
-          className="rounded-xl p-6 mb-8"
+          className="rounded-xl p-5 mb-8"
           style={{ backgroundColor: "#FFFFFF", boxShadow: "0 2px 12px rgba(28,28,30,0.08)" }}
         >
           <p
@@ -116,6 +120,7 @@ export default async function PropertyDetail({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Main content */}
           <div className="md:col-span-2">
+
             {/* Quick stats */}
             <div
               className="rounded-xl p-6 mb-8 grid grid-cols-3 gap-4"
@@ -178,7 +183,7 @@ export default async function PropertyDetail({
               <div className="grid grid-cols-2 gap-3">
                 {property.amenities.map((a) => (
                   <div key={a} className="flex items-center gap-2">
-                    <Check size={16} style={{ color: "#A02B2F" }} />
+                    <Check size={16} style={{ color: "#A02B2F", flexShrink: 0 }} />
                     <span className="font-body text-sm" style={{ color: "#4A4437" }}>
                       {a}
                     </span>
@@ -202,20 +207,13 @@ export default async function PropertyDetail({
               </p>
               <dl className="space-y-3">
                 <div className="flex justify-between">
-                  <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
-                    Category
-                  </dt>
-                  <dd
-                    className="font-bold text-sm font-body capitalize"
-                    style={{ color: "#1C1C1E" }}
-                  >
+                  <dt className="font-body text-sm" style={{ color: "#6B6558" }}>Category</dt>
+                  <dd className="font-bold text-sm font-body capitalize" style={{ color: "#1C1C1E" }}>
                     {property.category}
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
-                    Listing
-                  </dt>
+                  <dt className="font-body text-sm" style={{ color: "#6B6558" }}>Listing</dt>
                   <dd className="font-bold text-sm font-body" style={{ color: "#1C1C1E" }}>
                     {isDelivered
                       ? "Completed project"
@@ -225,21 +223,14 @@ export default async function PropertyDetail({
                   </dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
-                    Location
-                  </dt>
-                  <dd
-                    className="font-bold text-sm font-body text-right max-w-[60%]"
-                    style={{ color: "#1C1C1E" }}
-                  >
+                  <dt className="font-body text-sm" style={{ color: "#6B6558" }}>Location</dt>
+                  <dd className="font-bold text-sm font-body text-right max-w-[60%]" style={{ color: "#1C1C1E" }}>
                     {property.city}
                   </dd>
                 </div>
                 {property.bedrooms > 0 && (
                   <div className="flex justify-between">
-                    <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
-                      Bedrooms
-                    </dt>
+                    <dt className="font-body text-sm" style={{ color: "#6B6558" }}>Bedrooms</dt>
                     <dd className="font-bold text-sm font-body" style={{ color: "#1C1C1E" }}>
                       {property.bedrooms}
                     </dd>
@@ -247,9 +238,7 @@ export default async function PropertyDetail({
                 )}
                 {property.bathrooms > 0 && (
                   <div className="flex justify-between">
-                    <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
-                      Bathrooms
-                    </dt>
+                    <dt className="font-body text-sm" style={{ color: "#6B6558" }}>Bathrooms</dt>
                     <dd className="font-bold text-sm font-body" style={{ color: "#1C1C1E" }}>
                       {property.bathrooms}
                     </dd>
@@ -264,12 +253,9 @@ export default async function PropertyDetail({
                   </dd>
                 </div>
 
-                {/* Availability badge — only shown when not "available" */}
                 {property.availability && property.availability !== "available" && (
                   <div className="flex justify-between items-center">
-                    <dt className="font-body text-sm" style={{ color: "#6B6558" }}>
-                      Status
-                    </dt>
+                    <dt className="font-body text-sm" style={{ color: "#6B6558" }}>Status</dt>
                     <dd>
                       <span
                         className="px-2 py-0.5 rounded text-xs font-bold font-body capitalize"
