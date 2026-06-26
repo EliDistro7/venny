@@ -14,10 +14,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const CONTENT_KEYS: { key: string; label: string; hint: string }[] = [
   { key: "hero",      label: "Hero",      hint: "Click any text in the preview to edit it directly. Use the JSON panel for image URLs." },
-  { key: "stats",     label: "Stats",     hint: "Edit numbers and labels directly in the preview. Use JSON to add/remove items." },
+  { key: "stats",     label: "Stats",     hint: "Click numbers or labels to edit. Use + Add stat to add new items, hover a stat to delete it." },
   { key: "featured",  label: "Featured",  hint: "Click eyebrow, heading, or link label to edit." },
   { key: "locations", label: "Locations", hint: "Click eyebrow or heading to edit." },
-  { key: "whyus",     label: "Why Us",    hint: "Click any card text to edit. Use JSON to change icons." },
+  { key: "whyus",     label: "Why Us",    hint: "Click any card text to edit. Hover a card to delete it. Use + Add card to add new ones. Change icons via JSON." },
   { key: "cta",       label: "CTA",       hint: "Click any text to edit. Use JSON to change the background image or button link." },
 ];
 
@@ -44,41 +44,35 @@ const B = {
 };
 
 // ─── Path helpers ─────────────────────────────────────────────────────────────
-// Reads a dot-path like "cards.0.title" from an object
-function getPath(obj: Record<string, unknown>, path: string): string {
-  return path.split(".").reduce<unknown>((cur, k) => {
-    if (cur == null) return "";
-    if (Array.isArray(cur)) return cur[Number(k)];
-    return (cur as Record<string, unknown>)[k];
-  }, obj) as string ?? "";
-}
-
-// Returns a NEW object with the dot-path replaced
-function setPath(obj: Record<string, unknown>, path: string, value: string): Record<string, unknown> {
+function setPath(obj: Record<string, unknown>, path: string, value: unknown): Record<string, unknown> {
   const keys = path.split(".");
-  const clone = structuredClone(obj);
-  let cur: Record<string, unknown> | unknown[] = clone;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clone: any = structuredClone(obj);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let cur: any = clone;
   for (let i = 0; i < keys.length - 1; i++) {
     const k = keys[i];
-    const next = Array.isArray(cur) ? (cur as unknown[])[Number(k)] : (cur as Record<string, unknown>)[k];
+    const nextKey = keys[i + 1];
+    const nextIsIndex = /^\d+$/.test(nextKey);
     if (Array.isArray(cur)) {
-      cur = next as unknown[];
+      const idx = Number(k);
+      if (cur[idx] == null) cur[idx] = nextIsIndex ? [] : {};
+      cur = cur[idx];
     } else {
-      cur = next as Record<string, unknown>;
+      if (cur[k] == null) cur[k] = nextIsIndex ? [] : {};
+      cur = cur[k];
     }
   }
   const lastKey = keys[keys.length - 1];
   if (Array.isArray(cur)) {
-    (cur as unknown[])[Number(lastKey)] = value;
+    cur[Number(lastKey)] = value;
   } else {
-    (cur as Record<string, unknown>)[lastKey] = value;
+    cur[lastKey] = value;
   }
   return clone;
 }
 
 // ─── EditableText ─────────────────────────────────────────────────────────────
-// A contenteditable span that writes back via onCommit(newValue).
-// Shows a subtle gold underline + pencil icon only on hover.
 type HtmlTag = keyof React.JSX.IntrinsicElements;
 
 interface ETProps {
@@ -87,7 +81,7 @@ interface ETProps {
   style?: React.CSSProperties;
   className?: string;
   tag?: HtmlTag;
-  multiline?: boolean;       // allow Enter to insert newline instead of blur
+  multiline?: boolean;
   placeholder?: string;
 }
 
@@ -98,16 +92,13 @@ function ET({
   const ref = useRef<HTMLElement>(null);
   const [focused, setFocused] = useState(false);
 
-  // Keep DOM in sync when value changes externally (JSON panel edits)
   useEffect(() => {
     const el = ref.current;
     if (!el || focused) return;
     if (el.innerText !== value) el.innerText = value;
   }, [value, focused]);
 
-  function handleFocus() {
-    setFocused(true);
-  }
+  function handleFocus() { setFocused(true); }
 
   function handleBlur() {
     setFocused(false);
@@ -121,7 +112,7 @@ function ET({
       (e.target as HTMLElement).blur();
     }
     if (e.key === "Escape") {
-      if (ref.current) ref.current.innerText = value; // revert
+      if (ref.current) ref.current.innerText = value;
       (e.target as HTMLElement).blur();
     }
   }
@@ -140,7 +131,6 @@ function ET({
 
   return (
     <span className="group/et relative inline" style={{ position: "relative" }}>
-      {/* Pencil badge — appears on hover only */}
       {!focused && (
         <span
           className="absolute -top-3 -right-3 z-50 opacity-0 group-hover/et:opacity-100 transition-opacity pointer-events-none"
@@ -174,12 +164,33 @@ function ET({
   );
 }
 
-// ─── Preview components ───────────────────────────────────────────────────────
-// Each receives `data` (parsed JSON) and `onField(path, newValue)` for writebacks.
+// ─── Add button shared style ──────────────────────────────────────────────────
+function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="w-full py-2 rounded text-xs font-bold transition-all"
+      style={{
+        border: `1px dashed ${hovered ? "rgba(242,201,76,0.7)" : "rgba(242,201,76,0.3)"}`,
+        color: hovered ? "rgba(242,201,76,0.9)" : "rgba(242,201,76,0.5)",
+        fontFamily: "sans-serif",
+        letterSpacing: "0.08em",
+        backgroundColor: "transparent",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
 
+// ─── Preview components ───────────────────────────────────────────────────────
 interface PreviewProps {
   data: Record<string, unknown>;
   onField: (path: string, value: string) => void;
+  onArray: (path: string, value: unknown[]) => void;
 }
 
 function HeroPreview({ data: d, onField }: PreviewProps) {
@@ -199,7 +210,6 @@ function HeroPreview({ data: d, onField }: PreviewProps) {
         ) : null;
       })()}
 
-      {/* Decorative ghost words — editable */}
       <div className="absolute top-6 right-6 text-right select-none z-10">
         <div className="text-4xl font-bold leading-none" style={{ color: "rgba(160,43,47,0.38)" }}>
           <ET value={String(d.decorativeWord1 ?? "Nyumba")} onCommit={(v) => onField("decorativeWord1", v)} style={{ color: "inherit", fontFamily: "Georgia, serif", fontSize: "inherit" }} />
@@ -209,14 +219,11 @@ function HeroPreview({ data: d, onField }: PreviewProps) {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="relative z-10 flex flex-col items-center text-center px-8 py-12">
-        {/* Eyebrow */}
         <div className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: B.gold, letterSpacing: "0.15em", fontFamily: "sans-serif" }}>
           <ET value={String(d.eyebrow ?? "Venny Construction & Real Estate")} onCommit={(v) => onField("eyebrow", v)} style={{ color: "inherit", fontFamily: "sans-serif", fontSize: "inherit", letterSpacing: "inherit", fontWeight: "inherit" }} />
         </div>
 
-        {/* Three-line heading */}
         <h1 className="text-4xl font-bold leading-tight mb-4" style={{ color: B.cream }}>
           <ET value={String(d.headingLine1 ?? "Maisha Ni")} onCommit={(v) => onField("headingLine1", v)} style={{ color: B.cream }} />
           <br />
@@ -225,7 +232,6 @@ function HeroPreview({ data: d, onField }: PreviewProps) {
           <ET value={String(d.headingLine3 ?? "in Tanzania")} onCommit={(v) => onField("headingLine3", v)} style={{ color: B.cream }} />
         </h1>
 
-        {/* Subheading */}
         <div className="text-sm leading-relaxed mb-6 max-w-md" style={{ color: B.creamMid, fontFamily: "sans-serif" }}>
           <ET
             value={String(d.subheading ?? "Discover exceptional properties built and trusted by Venny Construction.")}
@@ -235,7 +241,6 @@ function HeroPreview({ data: d, onField }: PreviewProps) {
           />
         </div>
 
-        {/* Search bar — placeholder is editable */}
         <div className="flex rounded-lg overflow-hidden max-w-sm w-full mb-4" style={{ backgroundColor: "rgba(255,255,255,0.95)", boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}>
           <div className="flex items-center gap-2 flex-1 px-4 py-3">
             <MapPin size={14} style={{ color: B.red, flexShrink: 0 }} />
@@ -249,7 +254,6 @@ function HeroPreview({ data: d, onField }: PreviewProps) {
           </div>
         </div>
 
-        {/* Scroll label */}
         <div className="flex flex-col items-center gap-1 mt-2">
           <div className="w-px h-8 animate-pulse" style={{ backgroundColor: "rgba(242,201,76,0.4)" }} />
           <div className="text-[10px] tracking-widest" style={{ color: "rgba(242,201,76,0.6)", fontFamily: "sans-serif" }}>
@@ -261,11 +265,19 @@ function HeroPreview({ data: d, onField }: PreviewProps) {
   );
 }
 
-function StatsPreview({ data: d, onField }: PreviewProps) {
-  const items = (d.items as Array<{ num: string; label: string }>) ?? [
+function StatsPreview({ data: d, onField, onArray }: PreviewProps) {
+  const items = (d.items as Array<{ num: string; label: string } | null>) ?? [
     { num: "1,200+", label: "Properties Listed" },
     { num: "850+",   label: "Happy Clients" },
   ];
+
+  function addItem() {
+    onArray("items", [...items, { num: "0", label: "New Stat" }]);
+  }
+
+  function removeItem(i: number) {
+    onArray("items", items.filter((_, idx) => idx !== i));
+  }
 
   return (
     <div className="rounded-lg py-8 px-6" style={{ backgroundColor: B.charcoal }}>
@@ -273,28 +285,40 @@ function StatsPreview({ data: d, onField }: PreviewProps) {
         className="grid gap-6 text-center"
         style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, 1fr)` }}
       >
-        {items.map((s, i) => (
-          <div key={i}>
-            <div className="text-2xl font-bold mb-1" style={{ color: B.gold, fontFamily: "Georgia, serif" }}>
-              <ET
-                value={s.num ?? ""}
-                onCommit={(v) => onField(`items.${i}.num`, v)}
-                style={{ color: "inherit", fontFamily: "Georgia, serif", fontSize: "inherit", fontWeight: "inherit" }}
-              />
+        {items.map((s, i) => {
+          if (!s) return null;
+          return (
+            <div key={i} className="relative group/stat">
+              <button
+                onClick={() => removeItem(i)}
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover/stat:opacity-100 transition-opacity z-10 text-xs leading-none"
+                style={{ backgroundColor: B.red, color: B.cream }}
+                title="Remove stat"
+              >
+                ×
+              </button>
+              <div className="text-2xl font-bold mb-1" style={{ color: B.gold, fontFamily: "Georgia, serif" }}>
+                <ET
+                  value={s.num ?? ""}
+                  onCommit={(v) => onField(`items.${i}.num`, v)}
+                  style={{ color: "inherit", fontFamily: "Georgia, serif", fontSize: "inherit", fontWeight: "inherit" }}
+                />
+              </div>
+              <div className="text-xs" style={{ color: "rgba(248,245,240,0.6)", fontFamily: "sans-serif" }}>
+                <ET
+                  value={s.label ?? ""}
+                  onCommit={(v) => onField(`items.${i}.label`, v)}
+                  style={{ color: "inherit", fontFamily: "sans-serif", fontSize: "inherit" }}
+                />
+              </div>
             </div>
-            <div className="text-xs" style={{ color: "rgba(248,245,240,0.6)", fontFamily: "sans-serif" }}>
-              <ET
-                value={s.label ?? ""}
-                onCommit={(v) => onField(`items.${i}.label`, v)}
-                style={{ color: "inherit", fontFamily: "sans-serif", fontSize: "inherit" }}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <p className="text-center mt-4 text-[10px]" style={{ color: "rgba(248,245,240,0.2)", fontFamily: "sans-serif" }}>
-        Add or remove items via the JSON panel →
-      </p>
+
+      <div className="mt-6">
+        <AddButton onClick={addItem} label="+ Add stat" />
+      </div>
     </div>
   );
 }
@@ -367,12 +391,20 @@ function LocationsPreview({ data: d, onField }: PreviewProps) {
 
 const ICON_MAP: Record<string, React.ElementType> = { Shield, Users, TrendingUp };
 
-function WhyUsPreview({ data: d, onField }: PreviewProps) {
-  const cards = (d.cards as Array<{ icon?: string; title?: string; desc?: string }>) ?? [
+function WhyUsPreview({ data: d, onField, onArray }: PreviewProps) {
+  const cards = (d.cards as Array<{ icon?: string; title?: string; desc?: string } | null>) ?? [
     { icon: "Shield",     title: "Verified Listings",   desc: "Every property is physically inspected and legally verified." },
     { icon: "Users",      title: "Expert Local Agents", desc: "Our bilingual agents understand Tanzania's property market." },
     { icon: "TrendingUp", title: "Market Intelligence", desc: "Access real price data and neighbourhood insights." },
   ];
+
+  function addCard() {
+    onArray("cards", [...cards, { icon: "Shield", title: "New Feature", desc: "Describe it here." }]);
+  }
+
+  function removeCard(i: number) {
+    onArray("cards", cards.filter((_, idx) => idx !== i));
+  }
 
   return (
     <div className="rounded-lg p-6" style={{ backgroundColor: B.charcoal }}>
@@ -389,11 +421,25 @@ function WhyUsPreview({ data: d, onField }: PreviewProps) {
           />
         </div>
       </div>
+
       <div className="grid grid-cols-3 gap-3">
-        {cards.slice(0, 3).map((card, i) => {
+        {cards.map((card, i) => {
+          if (!card) return null;
           const Icon = ICON_MAP[card.icon ?? "Shield"] ?? Shield;
           return (
-            <div key={i} className="rounded-lg p-4" style={{ backgroundColor: B.creamFaint, border: `1px solid ${B.goldBorder}` }}>
+            <div
+              key={i}
+              className="relative group/card rounded-lg p-4"
+              style={{ backgroundColor: B.creamFaint, border: `1px solid ${B.goldBorder}` }}
+            >
+              <button
+                onClick={() => removeCard(i)}
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity z-10 text-xs leading-none"
+                style={{ backgroundColor: B.red, color: B.cream }}
+                title="Remove card"
+              >
+                ×
+              </button>
               <div className="w-8 h-8 rounded-md flex items-center justify-center mb-3" style={{ backgroundColor: B.redMid }}>
                 <Icon size={16} style={{ color: B.gold }} />
               </div>
@@ -407,6 +453,11 @@ function WhyUsPreview({ data: d, onField }: PreviewProps) {
           );
         })}
       </div>
+
+      <div className="mt-4">
+        <AddButton onClick={addCard} label="+ Add card" />
+      </div>
+
       <p className="text-center mt-3 text-[10px]" style={{ color: "rgba(248,245,240,0.2)", fontFamily: "sans-serif" }}>
         Change icons (Shield / Users / TrendingUp) via the JSON panel →
       </p>
@@ -454,7 +505,6 @@ const PREVIEWS: Record<string, React.ComponentType<PreviewProps>> = {
 // ─── Schema hint (JSON-only fields) ──────────────────────────────────────────
 const JSON_ONLY_FIELDS: Record<string, Array<{ field: string; type: string; note: string }>> = {
   hero:  [{ field: "backgroundImage", type: "string (URL or /path)", note: "Full-bleed background photo" }],
-  stats: [{ field: "items", type: "Array<{ num, label }>", note: "Add or remove stat items here" }],
   whyus: [{ field: "cards[*].icon", type: "Shield | Users | TrendingUp", note: "Icon name per card" }],
   cta:   [
     { field: "backgroundImage", type: "string (URL)", note: "Background photo" },
@@ -470,7 +520,7 @@ function JsonOnlyHint({ sectionKey }: { sectionKey: string }) {
       <div className="px-4 py-2.5 flex items-center gap-2" style={{ backgroundColor: "#DDD9D5" }}>
         <Code2 size={11} color="#7A7570" />
         <p className="text-[10px] font-body uppercase" style={{ color: "#7A7570", letterSpacing: "0.12em" }}>
-          JSON-only fields (can't be edited inline)
+          JSON-only fields (can&apos;t be edited inline)
         </p>
       </div>
       <div style={{ backgroundColor: "#E8E4E0" }}>
@@ -488,10 +538,10 @@ function JsonOnlyHint({ sectionKey }: { sectionKey: string }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function ContentEditorPage() {
-  const [blocks, setBlocks]     = useState<Record<string, BlockState>>({});
-  const [loading, setLoading]   = useState(true);
+  const [blocks, setBlocks]       = useState<Record<string, BlockState>>({});
+  const [loading, setLoading]     = useState(true);
   const [activeTab, setActiveTab] = useState(CONTENT_KEYS[0].key);
-  const [showJson, setShowJson]  = useState(false); // collapsible JSON panel
+  const [showJson, setShowJson]   = useState(false);
 
   // Load
   useEffect(() => {
@@ -512,8 +562,21 @@ export default function ContentEditorPage() {
     load();
   }, []);
 
-  // Write a dot-path back into the raw JSON string
+  // Write a dot-path string value back into the raw JSON
   const commitField = useCallback((blockKey: string, path: string, value: string) => {
+    setBlocks((prev) => {
+      const block = prev[blockKey];
+      if (!block) return prev;
+      let parsed: Record<string, unknown>;
+      try { parsed = JSON.parse(block.raw); } catch { return prev; }
+      const updated = setPath(parsed, path, value);
+      const pretty  = JSON.stringify(updated, null, 2);
+      return { ...prev, [blockKey]: { ...block, raw: pretty, error: null, success: false } };
+    });
+  }, []);
+
+  // Replace an entire array at a dot-path
+  const commitArray = useCallback((blockKey: string, path: string, value: unknown[]) => {
     setBlocks((prev) => {
       const block = prev[blockKey];
       if (!block) return prev;
@@ -546,7 +609,7 @@ export default function ContentEditorPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || `HTTP ${res.status}`);
+        throw new Error((err as { message?: string }).message || `HTTP ${res.status}`);
       }
       const pretty = JSON.stringify(data, null, 2);
       setBlocks((prev) => ({
@@ -580,10 +643,10 @@ export default function ContentEditorPage() {
     );
   }
 
-  const activeBlock       = blocks[activeTab];
-  const activeData        = parsedData[activeTab] ?? {};
-  const PreviewComponent  = PREVIEWS[activeTab];
-  const isDirty           = activeBlock?.raw !== activeBlock?.saved;
+  const activeBlock      = blocks[activeTab];
+  const activeData       = parsedData[activeTab] ?? {};
+  const PreviewComponent = PREVIEWS[activeTab];
+  const isDirty          = activeBlock?.raw !== activeBlock?.saved;
 
   let jsonValid = true;
   try { JSON.parse(activeBlock?.raw ?? "{}"); } catch { jsonValid = false; }
@@ -601,7 +664,6 @@ export default function ContentEditorPage() {
             <h1 className="font-display text-2xl text-white">Content Editor</h1>
           </div>
 
-          {/* Inline editing legend */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded" style={{ backgroundColor: "rgba(242,201,76,0.08)", border: "1px solid rgba(242,201,76,0.15)" }}>
             <Pencil size={11} style={{ color: B.gold }} />
             <span className="text-[11px] font-body" style={{ color: "rgba(242,201,76,0.7)", letterSpacing: "0.06em" }}>
@@ -658,7 +720,7 @@ export default function ContentEditorPage() {
           </button>
         </div>
 
-        {/* ── Preview area ── */}
+        {/* ── Preview + JSON split ── */}
         <div className="flex flex-1 overflow-hidden">
 
           {/* Preview column */}
@@ -670,6 +732,7 @@ export default function ContentEditorPage() {
               <PreviewComponent
                 data={activeData}
                 onField={(path, value) => commitField(activeTab, path, value)}
+                onArray={(path, value) => commitArray(activeTab, path, value)}
               />
             ) : (
               <div className="rounded-lg p-8 text-center" style={{ backgroundColor: B.charcoalMid }}>
@@ -680,13 +743,9 @@ export default function ContentEditorPage() {
             <JsonOnlyHint sectionKey={activeTab} />
           </div>
 
-          {/* JSON panel — slides in on demand */}
+          {/* JSON panel */}
           {showJson && (
-            <div
-              className="flex flex-col shrink-0"
-              style={{ width: 420 }}
-            >
-              {/* JSON textarea */}
+            <div className="flex flex-col shrink-0" style={{ width: 420 }}>
               <div className="relative flex-1">
                 {!jsonValid && (
                   <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded text-[10px]" style={{ backgroundColor: "#3A1A1A", color: "#F87171" }}>
@@ -709,7 +768,6 @@ export default function ContentEditorPage() {
                 />
               </div>
 
-              {/* JSON action bar */}
               <div
                 className="px-4 py-3 flex items-center gap-3 shrink-0"
                 style={{ backgroundColor: "#0E0E10", borderTop: "1px solid rgba(255,255,255,0.05)" }}
@@ -747,7 +805,7 @@ export default function ContentEditorPage() {
           )}
         </div>
 
-        {/* ── Floating publish bar (when JSON panel is hidden) ── */}
+        {/* ── Floating publish bar (JSON panel hidden) ── */}
         {!showJson && (
           <div
             className="shrink-0 px-6 py-3 flex items-center gap-4"

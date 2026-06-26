@@ -102,6 +102,24 @@ export default function Sidebar() {
           />
           Properties
         </Link>
+
+
+          <div className="my-3 border-t border-mist/10" aria-hidden="true" />
+
+        <Link
+          href="/admin/dashboard/home-editor"
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-md font-body text-sm transition-colors ${
+            isActive
+              ? "bg-mist/10 text-window-gold"
+              : "text-stone-grey hover:bg-mist/5 hover:text-mist"
+          }`}
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-window-gold" : "bg-stone-grey/50"}`}
+            aria-hidden="true"
+          />
+          Edit Homepage
+        </Link>
       </nav>
 
       {/* Logout */}
