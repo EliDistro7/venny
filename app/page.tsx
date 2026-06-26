@@ -15,7 +15,7 @@ export default async function Home() {
     getAllContent(),
   ]);
 
-  const featured = allFeatured.slice(0, 3);
+  const featured = allFeatured.slice(0, 5);
   const displayCities = cities.filter((c) => c !== "All Cities");
 
   const spotlightCities = cityStats.slice(0, 7).map((s, i) => ({
