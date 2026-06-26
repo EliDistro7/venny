@@ -25,14 +25,16 @@ export default async function Home() {
 
   // ── Content with fallbacks ────────────────────────────────────────────────
 
-  const stats: StatsContent = content.stats ?? {
-    items: [
-      { num: "1,200+", label: "Properties Listed" },
-      { num: "850+",   label: "Happy Clients" },
-      { num: `${displayCities.length}`, label: "Cities Covered" },
-      { num: "15+",    label: "Years Experience" },
-    ],
-  };
+const stats: StatsContent = {
+  items: content.stats?.items?.length
+    ? content.stats.items
+    : [
+        { num: "1,200+", label: "Properties Listed" },
+        { num: "850+",   label: "Happy Clients" },
+        { num: `${displayCities.length}`, label: "Cities Covered" },
+        { num: "15+",    label: "Years Experience" },
+      ],
+};
 
   const featured_c: FeaturedContent = content.featured ?? {
     eyebrow: "Handpicked for You",
@@ -55,14 +57,15 @@ export default async function Home() {
     ],
   };
 
-  const cta: CtaContent = content.cta ?? {
-    eyebrow: "Own Property in Tanzania?",
-    heading: "List With Venny\n& Reach Thousands",
-    subheading: "Connect with verified buyers and renters across Tanzania and the diaspora. Free listing for first 30 days.",
-    buttonLabel: "List Your Property Free",
-    buttonHref: "/contact",
-    backgroundImage: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1400&q=80",
-  };
+// Replace the cta block:
+const cta: CtaContent = {
+  eyebrow:         content.cta?.eyebrow         ?? "Own Property in Tanzania?",
+  heading:         content.cta?.heading         ?? "List With Venny\n& Reach Thousands",
+  subheading:      content.cta?.subheading      ?? "Connect with verified buyers and renters across Tanzania and the diaspora. Free listing for first 30 days.",
+  buttonLabel:     content.cta?.buttonLabel     ?? "List Your Property Free",
+  buttonHref:      content.cta?.buttonHref      ?? "/contact",   // ← was undefined
+  backgroundImage: content.cta?.backgroundImage ?? "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1400&q=80",
+};
 
   const ICON_MAP = { Shield, Users, TrendingUp };
 

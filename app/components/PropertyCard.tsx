@@ -12,21 +12,21 @@ interface PropertyCardProps {
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   work_in_progress: { label: "Work in Progress", color: "#D9822B" },
-  finished: { label: "Finished", color: "#2F855A" },
-//  delivered: { label: "Delivered to Customer", color: "#4A5568" },
+  finished:         { label: "Finished",          color: "#2F855A" },
+  // "delivered" intentionally omitted — no badge shown
 };
 
 const categoryLabel: Record<string, string> = {
-  apartment: "Apartment",
-  villa: "Villa",
-  house: "House",
-  land: "Land",
+  apartment:  "Apartment",
+  villa:      "Villa",
+  house:      "House",
+  land:       "Land",
   commercial: "Commercial",
 };
 
 const availabilityConfig: Record<string, { label: string; color: string }> = {
-  sold: { label: "Sold", color: "#1C1C1E" },
-  rented: { label: "Rented", color: "#1C1C1E" },
+  sold:     { label: "Sold",     color: "#1C1C1E" },
+  rented:   { label: "Rented",  color: "#1C1C1E" },
   reserved: { label: "Reserved", color: "#D9822B" },
 };
 
@@ -41,7 +41,7 @@ function buildMedia(images: string[], videos: string[]): MediaItem[] {
   ];
 }
 
-// ── Media thumbnail strip ─────────────────────────────────────────────────────
+// ── Thumbnail strip ────────────────────────────────────────────────────────────
 
 function MediaStrip({
   media,
@@ -54,7 +54,10 @@ function MediaStrip({
 }) {
   if (media.length <= 1) return null;
   return (
-    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 max-w-[90%] overflow-x-auto px-1">
+    <div
+      className="flex gap-2 px-4 py-3 overflow-x-auto"
+      style={{ borderTop: "1px solid rgba(28,28,30,0.07)" }}
+    >
       {media.map((item, i) => {
         const active = i === current;
         return (
@@ -68,19 +71,19 @@ function MediaStrip({
             aria-label={`View ${item.kind} ${i + 1}`}
             className="relative flex-shrink-0 rounded overflow-hidden transition-all duration-200"
             style={{
-              width: active ? "52px" : "40px",
-              height: "32px",
-              outline: active ? "2px solid #F2C94C" : "2px solid transparent",
+              width:         active ? "56px" : "44px",
+              height:        "36px",
+              outline:       active ? "2px solid #F2C94C" : "2px solid transparent",
               outlineOffset: "1px",
-              opacity: active ? 1 : 0.6,
+              opacity:       active ? 1 : 0.5,
             }}
           >
             {item.kind === "image" ? (
-              <Image src={item.src} alt="" fill className="object-cover" />
+              <Image src={item.src} alt="" fill className="object-cover" sizes="56px" />
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center"
-                style={{ backgroundColor: "rgba(28,28,30,0.9)" }}
+                style={{ backgroundColor: "rgba(28,28,30,0.88)" }}
               >
                 <Play size={10} fill="#F2C94C" stroke="none" />
               </div>
@@ -92,7 +95,7 @@ function MediaStrip({
   );
 }
 
-// ── Active media slide ────────────────────────────────────────────────────────
+// ── Active media — natural aspect ratio, no crop ───────────────────────────────
 
 function MediaSlide({
   item,
@@ -108,39 +111,39 @@ function MediaSlide({
       <Image
         src={item.src}
         alt={title}
-        fill
-        className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
+        width={1200}
+        height={900}
+        // w-full + h-auto = natural aspect ratio, no fixed-height crop
+        className={`w-full h-auto block transition-transform duration-500 group-hover:scale-[1.02] ${
           unavailable ? "brightness-75" : ""
         }`}
+        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
       />
     );
   }
 
-  // Video — show in natural aspect ratio, letterboxed inside the card frame
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black">
-      <video
-        src={item.src}
-        className="max-w-full max-h-full w-auto h-auto"
-        style={{ objectFit: "contain" }}
-        controls
-        playsInline
-        preload="metadata"
-        onClick={(e) => e.preventDefault()} // prevent card link navigation on click
-      />
-    </div>
+    <video
+      src={item.src}
+      // Same principle — no fixed height, natural aspect ratio
+      className="w-full h-auto block"
+      controls
+      playsInline
+      preload="metadata"
+      onClick={(e) => e.preventDefault()} // don't follow card link on video click
+    />
   );
 }
 
-// ── Fallback when there are no media at all ───────────────────────────────────
+// ── Fallback when there are no media ──────────────────────────────────────────
 
 function EmptyMedia() {
   return (
     <div
-      className="absolute inset-0 flex items-center justify-center"
+      className="w-full flex items-center justify-center py-20"
       style={{ backgroundColor: "#2C2C2E" }}
     >
-      <Video size={32} style={{ color: "rgba(242,201,76,0.4)" }} />
+      <Video size={28} style={{ color: "rgba(242,201,76,0.35)" }} />
     </div>
   );
 }
@@ -150,10 +153,10 @@ function EmptyMedia() {
 export default function PropertyCard({ property }: PropertyCardProps) {
   const isDelivered = property.status === "delivered";
   const unavailable = property.availability && property.availability !== "available";
-  const availBadge = unavailable ? availabilityConfig[property.availability!] : null;
+  const availBadge  = unavailable ? availabilityConfig[property.availability!] : null;
 
-  const media = buildMedia(property.images ?? [], property.videos ?? []);
-  const hasMedia = media.length > 0;
+  const media     = buildMedia(property.images ?? [], property.videos ?? []);
+  const hasMedia  = media.length > 0;
   const hasVideos = (property.videos?.length ?? 0) > 0;
 
   const [current, setCurrent] = useState(0);
@@ -170,22 +173,19 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   }
 
   return (
-    <Link href={`/properties/${property.id}`} className="block group">
+    <Link href={`/properties/${property.id}`} className="block group w-full">
       <div
-        className="rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-1"
+        className="w-full overflow-hidden transition-all duration-300 group-hover:-translate-y-0.5"
         style={{
           backgroundColor: "#FFFFFF",
-          boxShadow: "0 2px 12px rgba(28, 28, 30, 0.08)",
+          borderRadius: "12px",
+          boxShadow: "0 1px 4px rgba(28,28,30,0.06), 0 4px 20px rgba(28,28,30,0.08)",
         }}
       >
-        {/* ── Media area ── */}
-        <div className="relative h-56 overflow-hidden bg-black">
+        {/* ── Media — no fixed height, renders at natural aspect ratio ── */}
+        <div className="relative w-full overflow-hidden">
           {hasMedia ? (
-            <MediaSlide
-              item={currentItem}
-              title={property.title}
-              unavailable={!!unavailable}
-            />
+            <MediaSlide item={currentItem} title={property.title} unavailable={!!unavailable} />
           ) : (
             <EmptyMedia />
           )}
@@ -194,12 +194,15 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           {availBadge && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <span
-                className="px-5 py-2 rounded text-sm font-bold tracking-widest font-body uppercase rotate-[-15deg]"
+                className="px-5 py-2 rounded font-bold font-body uppercase"
                 style={{
+                  fontSize: "0.75rem",
+                  letterSpacing: "0.15em",
                   backgroundColor: availBadge.color,
                   color: "#FFFFFF",
                   opacity: 0.92,
-                  letterSpacing: "0.15em",
+                  transform: "rotate(-15deg)",
+                  display: "inline-block",
                 }}
               >
                 {availBadge.label}
@@ -207,40 +210,36 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </div>
           )}
 
-          {/* Prev / Next arrows — only when multiple media and not on a video (controls handle that) */}
+          {/* Prev / Next — only when multiple items and not currently on a video */}
           {media.length > 1 && !isVideo && (
             <>
               <button
                 type="button"
                 onClick={prev}
                 aria-label="Previous"
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ backgroundColor: "rgba(28,28,30,0.65)", color: "#F8F5F0" }}
               >
-                <ChevronLeft size={15} />
+                <ChevronLeft size={16} />
               </button>
               <button
                 type="button"
                 onClick={next}
                 aria-label="Next"
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ backgroundColor: "rgba(28,28,30,0.65)", color: "#F8F5F0" }}
               >
-                <ChevronRight size={15} />
+                <ChevronRight size={16} />
               </button>
             </>
           )}
 
-          {/* Thumbnail strip */}
-          {!isVideo && (
-            <MediaStrip media={media} current={current} onSelect={setCurrent} />
-          )}
-
           {/* Top-left badges */}
-          <div className="absolute top-3 left-3 flex gap-2 flex-wrap z-10">
+          <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap z-10">
             {!isDelivered && (
               <span
-                className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body uppercase"
+                key="type"
+                className="px-2.5 py-1 rounded text-xs font-bold tracking-wider font-body uppercase"
                 style={{
                   backgroundColor: property.type === "sale" ? "#A02B2F" : "#1C1C1E",
                   color: "#FFFFFF",
@@ -250,14 +249,16 @@ export default function PropertyCard({ property }: PropertyCardProps) {
               </span>
             )}
             <span
-              className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body"
-              style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#1C1C1E" }}
+              key="category"
+              className="px-2.5 py-1 rounded text-xs font-bold tracking-wider font-body"
+              style={{ backgroundColor: "rgba(255,255,255,0.92)", color: "#1C1C1E" }}
             >
               {categoryLabel[property.category]}
             </span>
-            {property.status && (
+            {property.status && statusConfig[property.status] && (
               <span
-                className="px-3 py-1 rounded text-xs font-bold tracking-wider font-body"
+                key="status"
+                className="px-2.5 py-1 rounded text-xs font-bold tracking-wider font-body"
                 style={{
                   backgroundColor: statusConfig[property.status].color,
                   color: "#FFFFFF",
@@ -268,11 +269,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             )}
           </div>
 
-          {/* Top-right badges */}
-          <div className="absolute top-3 right-3 flex flex-col items-end gap-2 z-10">
+          {/* Top-right badges — featured + video indicator */}
+          <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
             {property.featured && (
               <span
-                className="px-2 py-1 rounded text-xs font-bold tracking-wider font-body"
+                className="px-2.5 py-1 rounded text-xs font-bold tracking-wider font-body"
                 style={{ backgroundColor: "#F2C94C", color: "#1C1C1E" }}
               >
                 ✦ Featured
@@ -289,31 +290,34 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             )}
           </div>
 
-          {/* Media counter */}
+          {/* Media counter — bottom-right, only when multiple items */}
           {media.length > 1 && (
             <div
-              className="absolute bottom-2 right-3 z-20 px-2 py-0.5 rounded-full text-xs font-body font-bold"
+              className="absolute bottom-3 right-3 z-20 px-2.5 py-0.5 rounded-full text-xs font-body font-bold"
               style={{ backgroundColor: "rgba(28,28,30,0.6)", color: "#F8F5F0" }}
             >
-              {current + 1}/{media.length}
+              {current + 1} / {media.length}
             </div>
           )}
         </div>
 
-        {/* ── Content ── */}
-        <div className="p-5">
-          <p
-            className="text-sm font-bold mb-1 font-body uppercase tracking-wide"
-            style={{ color: "#A02B2F" }}
-          >
-            {isDelivered ? (
-              <></>
-            ) : property.type === "sale" ? (
-              "For Sale — Contact for Price"
-            ) : (
-              "For Rent — Contact for Price"
-            )}
-          </p>
+        {/* ── Thumbnail strip — below media, above text, hidden during video ── */}
+        {!isVideo && media.length > 1 && (
+          <MediaStrip media={media} current={current} onSelect={setCurrent} />
+        )}
+
+        {/* ── Text content ── */}
+        <div className="px-5 pt-4 pb-5">
+          {!isDelivered && (
+            <p
+              className="text-xs font-bold mb-1.5 font-body uppercase tracking-wide"
+              style={{ color: "#A02B2F" }}
+            >
+              {property.type === "sale"
+                ? "For Sale — Contact for Price"
+                : "For Rent — Contact for Price"}
+            </p>
+          )}
 
           <h3
             className="text-base font-bold mb-2 leading-snug"
@@ -331,7 +335,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
           {property.category !== "land" ? (
             <div
-              className="flex gap-4 pt-4 font-body text-xs"
+              className="flex flex-wrap gap-4 pt-4 font-body text-xs"
               style={{
                 borderTop: "1px solid rgba(160, 43, 47, 0.12)",
                 color: "#6B6558",

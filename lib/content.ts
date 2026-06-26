@@ -73,10 +73,15 @@ export interface SiteContent {
 export async function getAllContent(): Promise<Partial<SiteContent>> {
   try {
     const res = await fetch(`${API_URL}/api/content`, {
-      next: { revalidate: 60 }, // ISR: re-fetch at most every 60 seconds
+      next: { revalidate: 60 },
     });
     if (!res.ok) throw new Error(`Content API ${res.status}`);
-    return (await res.json()) as Partial<SiteContent>;
+
+    const data = await res.json();         // read once
+    console.log("all content:", data);     // inspect the shape
+
+    // Your API wraps the payload in { data: ... } — unwrap it
+    return (data.data ?? data) as Partial<SiteContent>;
   } catch (err) {
     console.error("[content] Failed to fetch:", err);
     return {};
